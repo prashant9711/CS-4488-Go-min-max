@@ -1,0 +1,1 @@
+This is the branch for Ethan's contribution to the Go game Capstone Project S25.
