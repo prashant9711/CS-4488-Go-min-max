@@ -8,6 +8,7 @@
 
 using namespace std;
 
+// Created by Ethan
 class GoGame {
 private:
     int size;
@@ -34,6 +35,7 @@ public:
         }
     }
 
+    // Created by Ethan
     bool placeStone(string move) {
         if (move == "quit") return false; // Quit to menu
 
@@ -57,6 +59,7 @@ public:
     }
 
     // Gameplay loop
+    // Created by Ethan
     void play() {
         string move;
         while (true) {
@@ -72,6 +75,7 @@ public:
     }
 };
 
+// Created by Ethan
 void mainMenu() {
     while (true) {
         // Initial game menu
@@ -116,6 +120,7 @@ void mainMenu() {
     }
 }
 
+// Created by Ethan
 int main() {
     mainMenu();
     return 0;
