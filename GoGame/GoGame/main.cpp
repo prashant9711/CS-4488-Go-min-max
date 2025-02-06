@@ -102,7 +102,7 @@ void mainMenu() {
         if (cin.fail()) {
             // Clear the error state and ignore invalid input
             cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            //cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Invalid input! Please enter 1 or 2.\n";
             continue;
         }
@@ -121,7 +121,7 @@ void mainMenu() {
             // Build board from chosen size
             if (cin.fail() || (boardSize != 9 && boardSize != 13 && boardSize != 19)) {
                 cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                //cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 cout << "Invalid board size. Defaulting to 9x9.\n";
                 boardSize = 9;
             }
@@ -160,7 +160,7 @@ int main() {
     int i = 0;
     int j = 1;
     while(1){
-        board->place_stone_on_board(i % stoneField_size + 1,  i / stoneField_size + 1, 0);
+        board->place_stone_on_board(i % stoneField_size + 1,  i /stoneField_size + 1, 0);
         board->place_stone_on_board(j % stoneField_size + 1, j / stoneField_size + 1, 1);
         //board->place_stone_on_board(i, i + 1, 1);
         window.display();

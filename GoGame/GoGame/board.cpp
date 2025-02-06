@@ -99,8 +99,10 @@ bool Board::place_stone_on_board(int row, int col, bool player){
 		for (int j = 0; j < sprite_width; j++) {
 			row_calc = static_cast<int>(static_cast<float>(row - 1) * board_height_between_rows) - (sprite_height >> 1) + i;
 			col_calc = static_cast<int>(static_cast<float>(col - 1) * board_width_between_cols) - (sprite_width >> 1) + j;
-			board[row_calc + ((sprite_height >> 1) * (row_calc < 0)) - 2*((sprite_height >> 1) * (row_calc > boardHeight - 1))]
-				[col_calc + ((sprite_width >> 1) * (col_calc < 0)) - 2*((sprite_width >> 1) * (col_calc > boardWidth - 1))]
+			int r1 = row_calc + ((sprite_height >> 1) * (row_calc < 0)) - 2 * ((sprite_height >> 1) * (row_calc > boardHeight - 1)) - ((sprite_height >> 1) == 0 && (row_calc > boardHeight - 1));
+			int c1 = col_calc + ((sprite_width >> 1) * (col_calc < 0)) - 2 * ((sprite_width >> 1) * (col_calc > boardWidth - 1)) - ((sprite_width >> 1) == 0 && (col_calc > boardWidth - 1));
+			board[r1]
+				[c1]
 				= stone_sprite[i][j];
 		}
 	}
