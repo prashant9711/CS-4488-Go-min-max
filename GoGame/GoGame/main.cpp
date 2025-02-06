@@ -1,10 +1,21 @@
-﻿#include "pch.h"
+﻿//#include "pch.h"
 
 #include <iostream>
 #include <vector>
 #include <cctype>
 #include <sstream>
 #include <limits>
+#include <thread>
+#include <chrono>
+
+#ifndef GO_WINDOW
+#include "window.hpp"
+#endif
+
+#ifndef GO_BOARD
+#include "board.hpp"
+#endif
+
 
 using namespace std;
 
@@ -117,6 +128,35 @@ void mainMenu() {
 }
 
 int main() {
-    mainMenu();
+    //mainMenu();
+
+    
+    /*int screenWidth = 120;
+    int screenHeight = 60;
+    
+    int stoneField_size = 9;
+    int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
+    int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
+    std::shared_ptr<Board> board = std::make_shared<Board>(
+        boardWidth,
+        boardHeight,
+        stoneField_size,
+        (screenWidth - boardWidth) / 2,
+        (screenHeight - boardHeight) / 2
+    );
+    ConsoleWindow window(screenHeight, screenWidth, board);
+
+    int i = 0;
+    int j = 1;
+    while(1){
+        board->place_stone_on_board(i % stoneField_size + 1,  i / stoneField_size + 1, 0);
+        board->place_stone_on_board(j % stoneField_size + 1, j / stoneField_size + 1, 1);
+        //board->place_stone_on_board(i, i + 1, 1);
+        window.display();
+        window.clear();
+        i += 2;
+        j += 2;
+        std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
+    }*/
     return 0;
 }
