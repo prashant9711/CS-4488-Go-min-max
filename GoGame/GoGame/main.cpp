@@ -19,8 +19,10 @@
 
 using namespace std;
 
+// Created by Ethan
 class GoGame {
 private:
+    // Initial variables for board and game creation
     int size;
     vector<vector<char>> board;
     char currentPlayer;
@@ -32,12 +34,12 @@ public:
     void displayBoard() {
         cout << "   ";
         for (int col = 0; col < size; col++) {
-            cout << col << " ";
+            cout << col << " "; // Build columns of board
         }
         cout << endl;
 
         for (int row = 0; row < size; row++) {
-            cout << char('A' + row) << "  ";
+            cout << char('A' + row) << "  "; // Build rows of board
             for (int col = 0; col < size; col++) {
                 cout << board[row][col] << " ";
             }
@@ -45,29 +47,31 @@ public:
         }
     }
 
+    // Created by Ethan
     bool placeStone(string move) {
         if (move == "quit") return false; // Quit to menu
 
-        if (move.length() < 2) return false;
+        if (move.length() < 2) return false; // Invalid input check
 
         char rowChar = toupper(move[0]); // Convert row letter to uppercase
         int row = rowChar - 'A';
 
         // Convert the column number safely
         int col;
-        stringstream ss(move.substr(1)); // Use stringstream
+        stringstream ss(move.substr(1));
         if (!(ss >> col)) return false;  // Ensure conversion is valid
 
         if (row < 0 || row >= size || col < 0 || col >= size || board[row][col] != '.') {
-            return false;
+            return false; // Catch input off board
         }
 
-        board[row][col] = currentPlayer;
+        board[row][col] = currentPlayer; // Set current player stone location
         currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Swap player
         return true;
     }
 
     // Gameplay loop
+    // Created by Ethan
     void play() {
         string move;
         while (true) {
@@ -76,13 +80,14 @@ public:
             cin >> move;
 
             if (!placeStone(move)) {
-                if (move == "quit") return; // Quit game and return to menu
+                if (move == "quit") return; // Quit game and return to menu mid game
                 cout << "Invalid move! Try again.\n";
             }
         }
     }
 };
 
+// Created by Ethan
 void mainMenu() {
     while (true) {
         // Initial game menu
@@ -103,14 +108,17 @@ void mainMenu() {
         }
 
         if (choice == 2) {
+            // Exit game from menu
             cout << "Exiting game. Goodbye!\n";
             return;
         }
         else if (choice == 1) {
+            // Start game loop
             int boardSize;
             cout << "Choose board size (9, 13, 19): ";
             cin >> boardSize;
 
+            // Build board from chosen size
             if (cin.fail() || (boardSize != 9 && boardSize != 13 && boardSize != 19)) {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -118,15 +126,18 @@ void mainMenu() {
                 boardSize = 9;
             }
 
+            // Draw board and start gameplay loop
             GoGame game(boardSize);
             game.play();
         }
         else {
+            // Error catch for invalid input
             cout << "Invalid choice! Please enter 1 or 2.\n";
         }
     }
 }
 
+// Created by Ethan
 int main() {
     //mainMenu();
 
