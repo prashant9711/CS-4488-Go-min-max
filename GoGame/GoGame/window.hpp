@@ -51,6 +51,8 @@ class ConsoleWindow : Window {
 		void place_board_on_screen();
 		void one_dimensionalize();
 		void draw_row_and_col_labels();
+		void draw_turn_info();
+		void get_mouse_coord_on_click();
 
 
 	public:

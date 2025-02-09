@@ -142,7 +142,7 @@ int main() {
     //mainMenu();
 
     
-    /*int screenWidth = 120;
+    int screenWidth = 120;
     int screenHeight = 60;
     
     int stoneField_size = 9;
@@ -159,15 +159,24 @@ int main() {
 
     int i = 0;
     int j = 1;
+
+    Space_Types turn = WHITE;
     while(1){
-        board->place_stone_on_board(i % stoneField_size + 1,  i /stoneField_size + 1, 0);
-        board->place_stone_on_board(j % stoneField_size + 1, j / stoneField_size + 1, 1);
+        if (!turn) {
+            board->place_stone_on_board(i % stoneField_size + 1, i / stoneField_size + 1, Space_Types::WHITE);
+            i += 2;
+        }
+        if (turn) {
+            board->place_stone_on_board(j % stoneField_size + 1, j / stoneField_size + 1, Space_Types::BLACK);
+            j += 2;
+        }
         //board->place_stone_on_board(i, i + 1, 1);
         window.display();
         window.clear();
-        i += 2;
-        j += 2;
+        
         std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
-    }*/
+        turn = static_cast<Space_Types>(!static_cast<bool>(turn));
+    }
+
     return 0;
 }
