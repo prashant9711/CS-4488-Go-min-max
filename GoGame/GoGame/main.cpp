@@ -145,7 +145,7 @@ int main() {
     int screenWidth = 120;
     int screenHeight = 60;
     
-    int stoneField_size = 9;
+    int stoneField_size = 19;
     int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
     int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
     std::shared_ptr<Board> board = std::make_shared<Board>(
@@ -157,20 +157,12 @@ int main() {
     );
     ConsoleWindow window(screenHeight, screenWidth, board);
 
-    int i = 0;
-    int j = 1;
-
     Space_Types turn = WHITE;
+    window.display();
     while(1){
-        if (!turn) {
-            board->place_stone_on_board(i % stoneField_size + 1, i / stoneField_size + 1, Space_Types::WHITE);
-            i += 2;
-        }
-        if (turn) {
-            board->place_stone_on_board(j % stoneField_size + 1, j / stoneField_size + 1, Space_Types::BLACK);
-            j += 2;
-        }
-        //board->place_stone_on_board(i, i + 1, 1);
+
+        while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
+                                                        //Problem is, it depends on mouse input.  I will figure this out later.
         window.display();
         window.clear();
         

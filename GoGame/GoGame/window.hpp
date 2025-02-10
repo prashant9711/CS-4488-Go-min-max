@@ -52,13 +52,15 @@ class ConsoleWindow : Window {
 		void one_dimensionalize();
 		void draw_row_and_col_labels();
 		void draw_turn_info();
-		void get_mouse_coord_on_click();
+		std::unique_ptr<MOUSE_EVENT_RECORD> get_mouse_coord_on_click();
 
 
 	public:
 
 		ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> board);
 		~ConsoleWindow();
+
+		bool place_stone_for_player(Space_Types player);
 
 		void display();
 		void clear();

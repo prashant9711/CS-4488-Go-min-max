@@ -15,6 +15,10 @@
 #include <string>
 #endif
 
+#ifndef _CMATH_
+#include <cmath>
+#endif
+
 
 
 //Rhett Thompson
@@ -27,7 +31,7 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(hConsole);
 
-	//I wish I could get the window to resize automatically
+	//I wish I could get the window to resize here
 	//MoveWindow(window_handle, x, y, width, height, redraw_window);
 	//MoveWindow(hConsole, 100, 100, sWidth, sHeight, TRUE);
 	//SMALL_RECT rect = { 0, 0, sWidth, sHeight };
@@ -41,7 +45,6 @@ void ConsoleWindow::display() {
 	place_board_on_screen();
 	one_dimensionalize();
 	//draw_turn_info();
-	get_mouse_coord_on_click(); // Change this to not be called here
 	WriteConsoleOutputCharacter(hConsole, oneD_screen.data(), screenWidth * screenHeight, { 0,0 }, &dwBytesWritten);
 }
 
@@ -109,22 +112,36 @@ void ConsoleWindow::draw_turn_info() {
 
 
 //Rhett Thompson
-void ConsoleWindow::get_mouse_coord_on_click() {
-	//This works, but causes the game to pause for some reason
+std::unique_ptr<MOUSE_EVENT_RECORD> ConsoleWindow::get_mouse_coord_on_click() {
+
 	HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE);
 	DWORD mode = ENABLE_EXTENDED_FLAGS | ENABLE_MOUSE_INPUT;
 	SetConsoleMode(consoleInput, mode);
 	INPUT_RECORD input_record;
 	DWORD events;
 
-	ReadConsoleInput(consoleInput, &input_record, 1, &events); //I believe this waits until the input buffer has something in it before proceeding
+	MOUSE_EVENT_RECORD mouse_event;
+	while (1) {
+		FlushConsoleInputBuffer(consoleInput); //I don't want queued mouse events so clear it every iteration
+		ReadConsoleInput(consoleInput, &input_record, 1, &events); //This waits until there is an event in the input buffer.
+		//It includes anything relating to input, i.e, click, movement, key presses, etc.
 
-	if (input_record.EventType == MOUSE_EVENT) {
-		MOUSE_EVENT_RECORD mouse_event = input_record.Event.MouseEvent;
-		if (mouse_event.dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) {
-			swprintf_s(&(oneD_screen.data())[0], 30, L"Pos: %s, %s", std::to_wstring(mouse_event.dwMousePosition.X).c_str(), std::to_wstring(mouse_event.dwMousePosition.Y).c_str());
+		if (input_record.EventType == MOUSE_EVENT && ((mouse_event = input_record.Event.MouseEvent).dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED)) {
+				return std::make_unique<MOUSE_EVENT_RECORD>(std::move(mouse_event)); //Only way to escape is left click
 		}
 	}
+	return nullptr;
+}
+
+//Rhett Thompson
+bool ConsoleWindow::place_stone_for_player(Space_Types player) {
+	std::unique_ptr<MOUSE_EVENT_RECORD> mouse_event = get_mouse_coord_on_click();
+	if (!mouse_event) return false;
+
+	int true_col = static_cast<int>(std::roundf((static_cast<float>(mouse_event->dwMousePosition.X) - static_cast<float>(board->x_pos)) / board->board_width_between_cols)) + 1;
+	int true_row = static_cast<int>(std::roundf((static_cast<float>(mouse_event->dwMousePosition.Y) - static_cast<float>(board->y_pos)) / board->board_height_between_rows)) + 1;
+
+	return this->board->place_stone_on_board(true_row, true_col, player);
 }
 
 
