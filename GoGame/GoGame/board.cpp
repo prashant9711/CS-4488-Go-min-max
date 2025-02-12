@@ -23,6 +23,7 @@ Board::Board(int bWidth, int bHeight, int stone_amount, int x, int y):
 
 //Rhett Thompson
 void Board::init_board() {
+	//Fill the board with the appropriate characters
 
 	for (float i = 0; i < boardHeight; i += board_height_between_rows) { //Horizontal bars inside of board
 		for (int j = 0; j < boardWidth; j++) {
@@ -61,6 +62,7 @@ void Board::init_board() {
 
 //Rhett Thompson
 std::vector<std::vector<wchar_t>> Board::build_piece(wchar_t ch) {
+	//Builds a character sprite for a stone from the specified character
 	int height = calc_piece_space(board_height_between_rows);
 	int width = calc_piece_space(board_width_between_cols);
 
@@ -78,6 +80,7 @@ std::vector<std::vector<wchar_t>> Board::build_piece(wchar_t ch) {
 
 //Rhett Thompson
 int Board::calc_piece_space(float space) {
+	//Calculates the width or height of a character sprite based on the size of the board.
 	int half_space = static_cast<int>(space) >> 1;
 	return half_space - !(half_space & 0x1); //Subtract 1 if its even
 }
@@ -86,6 +89,8 @@ int Board::calc_piece_space(float space) {
 
 //Rhett Thompson
 bool Board::place_stone_on_board(int row, int col, Space_Types player){
+	//Places a character sprite on the board
+	//I plan on seperating this so that drawing stones depends on the stones vector
 	if (row > stoneField_size || col > stoneField_size || row < 1 || col < 1) return false;
 	if (stones[row-1][col-1] != Space_Types::EMPTY) return false;
 

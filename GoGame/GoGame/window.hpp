@@ -45,7 +45,7 @@ class ConsoleWindow : Window {
 
 		std::shared_ptr<Board> board;
 
-		HANDLE hConsole;
+		HANDLE console_handle;
 		DWORD dwBytesWritten = 0;
 
 		void place_board_on_screen();

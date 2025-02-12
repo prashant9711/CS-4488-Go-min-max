@@ -28,8 +28,8 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 	oneD_screen(std::vector<wchar_t>(sHeight * sWidth, L' ')),
 	board(b)
 {
-	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
-	SetConsoleActiveScreenBuffer(hConsole);
+	console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
+	SetConsoleActiveScreenBuffer(console_handle);
 
 	//I wish I could get the window to resize here
 	//MoveWindow(window_handle, x, y, width, height, redraw_window);
@@ -42,24 +42,27 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 
 //Rhett Thompson
 void ConsoleWindow::display() {
+	//Writes the screen characters to the console
 	place_board_on_screen();
 	one_dimensionalize();
 	//draw_turn_info();
-	WriteConsoleOutputCharacter(hConsole, oneD_screen.data(), screenWidth * screenHeight, { 0,0 }, &dwBytesWritten);
+	WriteConsoleOutputCharacter(console_handle, oneD_screen.data(), screenWidth * screenHeight, { 0,0 }, &dwBytesWritten);
 }
 
 //Rhett Thompson
+//This does nothing here
 void ConsoleWindow::clear() { return; }
 
 
 //Rhett Thompson
 ConsoleWindow::~ConsoleWindow() {
-	CloseHandle(hConsole);
+	CloseHandle(console_handle);
 }
 
 
 //Rhett Thompson
 void ConsoleWindow::place_board_on_screen() {
+	//Places the board in the screen vector
 	for (int i = 0; i < board->boardHeight; i++) {
 		for (int j = 0; j < board->boardWidth; j++) {
 			screen[this->board->y_pos + i][this->board->x_pos + j] = board->board[i][j];
@@ -69,6 +72,7 @@ void ConsoleWindow::place_board_on_screen() {
 
 //Rhett Thompson
 void ConsoleWindow::one_dimensionalize() {
+	//One dimensionalizes a two dimensional array
 	for (int i = 0; i < screenHeight * screenWidth; i++) {
 		oneD_screen[i] = screen[i / screenWidth][i % screenWidth];
 	}
@@ -77,7 +81,7 @@ void ConsoleWindow::one_dimensionalize() {
 
 //Rhett Thompson
 void ConsoleWindow::draw_row_and_col_labels() {
-	//Surprisingly annoying function to write due to excessive OCD
+	//Places the column and row labels next to the board
 	int label_loc = (board->x_pos) - 1;
 	int k = 0;
 	for (float i = 0; i < (board->boardHeight) - 1; i += (board->board_height_between_rows), k++) {
@@ -113,7 +117,7 @@ void ConsoleWindow::draw_turn_info() {
 
 //Rhett Thompson
 std::unique_ptr<MOUSE_EVENT_RECORD> ConsoleWindow::get_mouse_coord_on_click() {
-
+	//Gets the mouse coordinates in the console when a left click occurs
 	HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE);
 	DWORD mode = ENABLE_EXTENDED_FLAGS | ENABLE_MOUSE_INPUT;
 	SetConsoleMode(consoleInput, mode);
@@ -135,6 +139,7 @@ std::unique_ptr<MOUSE_EVENT_RECORD> ConsoleWindow::get_mouse_coord_on_click() {
 
 //Rhett Thompson
 bool ConsoleWindow::place_stone_for_player(Space_Types player) {
+	//Places a stone on the board based on the mouse coordinates
 	std::unique_ptr<MOUSE_EVENT_RECORD> mouse_event = get_mouse_coord_on_click();
 	if (!mouse_event) return false;
 

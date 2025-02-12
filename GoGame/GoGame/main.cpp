@@ -145,7 +145,7 @@ int main() {
     int screenWidth = 120;
     int screenHeight = 60;
     
-    int stoneField_size = 19;
+    int stoneField_size = 9;
     int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
     int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
     std::shared_ptr<Board> board = std::make_shared<Board>(

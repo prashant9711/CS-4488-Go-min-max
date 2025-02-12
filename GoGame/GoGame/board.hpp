@@ -14,6 +14,8 @@ enum Space_Types {
 	BLACK = 1
 };
 
+
+
 //Rhett Thompson
 class Board {
 	friend class ConsoleWindow;
@@ -41,7 +43,11 @@ class Board {
 
 		Board(int bWidth, int bHeight, int stone_amount, int x_pos, int y_pos);
 		bool place_stone_on_board(int col, int row, Space_Types player);
-		
+
+
+		std::vector<std::vector<Space_Types>>& getStones();
+
+
 
 };
 
