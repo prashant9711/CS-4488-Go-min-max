@@ -31,7 +31,7 @@ class Board {
 		int y_pos = 0;
 		
 		std::vector<std::vector<wchar_t>> board;
-		std::vector<std::vector<int>> stones;
+		std::vector<std::vector<Space_Types>> stones;
 		std::vector<std::vector<wchar_t>> white_stone;
 		std::vector<std::vector<wchar_t>> black_stone;
 

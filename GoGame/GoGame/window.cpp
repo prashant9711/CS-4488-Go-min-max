@@ -15,6 +15,11 @@
 #include <string>
 #endif
 
+#ifndef _CMATH_
+#include <cmath>
+#endif
+
+
 
 //Rhett Thompson
 ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) :
