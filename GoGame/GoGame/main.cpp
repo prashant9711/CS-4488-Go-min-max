@@ -142,7 +142,7 @@ int main() {
     //mainMenu();
 
     
-    /*int screenWidth = 120;
+    int screenWidth = 120;
     int screenHeight = 60;
     
     int stoneField_size = 9;
@@ -157,17 +157,18 @@ int main() {
     );
     ConsoleWindow window(screenHeight, screenWidth, board);
 
-    int i = 0;
-    int j = 1;
+    Space_Types turn = WHITE;
+    window.display();
     while(1){
-        board->place_stone_on_board(i % stoneField_size + 1,  i /stoneField_size + 1, 0);
-        board->place_stone_on_board(j % stoneField_size + 1, j / stoneField_size + 1, 1);
-        //board->place_stone_on_board(i, i + 1, 1);
+
+        while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
+                                                        //Problem is, it depends on mouse input.  I will figure this out later.
         window.display();
         window.clear();
-        i += 2;
-        j += 2;
+        
         std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
-    }*/
+        turn = static_cast<Space_Types>(!static_cast<bool>(turn));
+    }
+
     return 0;
 }

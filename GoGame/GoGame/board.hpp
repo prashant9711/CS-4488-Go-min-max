@@ -7,6 +7,15 @@
 
 class ConsoleWindow;
 
+
+enum Space_Types {
+	EMPTY = -1,
+	WHITE = 0,
+	BLACK = 1
+};
+
+
+
 //Rhett Thompson
 class Board {
 	friend class ConsoleWindow;
@@ -22,7 +31,7 @@ class Board {
 		int y_pos = 0;
 		
 		std::vector<std::vector<wchar_t>> board;
-		std::vector<std::vector<int>> stones;
+		std::vector<std::vector<Space_Types>> stones;
 		std::vector<std::vector<wchar_t>> white_stone;
 		std::vector<std::vector<wchar_t>> black_stone;
 
@@ -33,8 +42,12 @@ class Board {
 	public:
 
 		Board(int bWidth, int bHeight, int stone_amount, int x_pos, int y_pos);
-		bool place_stone_on_board(int col, int row, bool player);
-		
+		bool place_stone_on_board(int col, int row, Space_Types player);
+
+
+		std::vector<std::vector<Space_Types>>& getStones();
+
+
 
 };
 
