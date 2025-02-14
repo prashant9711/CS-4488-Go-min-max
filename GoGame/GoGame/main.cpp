@@ -25,18 +25,36 @@ class GoGame {
 private:
     // Initial variables for board and game creation
     int size;
-    vector<vector<char>> board;
-    //std::shared_ptr<Board> board;
-    char currentPlayer;
+    //vector<vector<char>> board;
+    std::shared_ptr<Board> board_class;
+    //char currentPlayer;
+    std::shared_ptr<Window> window;
     // Added by Prashant
-	int passCount; // To keep track of pass count of the players
+    Space_Types currentPlayer;
+    bool hasBot = false;
+    int passCount; // To keep track of pass count of the players
 
     //edited by Prashant changed the first player to black
 public:
-    GoGame(int boardSize) : size(boardSize), board(boardSize, vector<char>(boardSize, '.')), currentPlayer('B'), passCount(0) {}
+    GoGame(int boardSize) : size(boardSize), currentPlayer(WHITE), passCount(0) {
+
+        int screenWidth = 120;
+        int screenHeight = 60;
+
+        int boardWidth = ((size - 1) * ((screenWidth / (size - 1)) - 2)) + 1;
+        int boardHeight = ((size - 1) * ((screenHeight / (size - 1)) - 1)) + 1;
+        board_class = std::make_shared<Board>(
+            boardWidth,
+            boardHeight,
+            size,
+            (screenWidth - boardWidth) / 2,
+            (screenHeight - boardHeight) / 2
+        );
+        window = std::make_shared<ConsoleWindow>(screenHeight, screenWidth, board_class);
+    }
 
     // Temp display for board
-    void displayBoard() {
+    /*void displayBoard() {
         cout << "   ";
         for (int col = 0; col < size; col++) {
             cout << col << " "; // Build columns of board
@@ -50,12 +68,12 @@ public:
             }
             cout << endl;
         }
-    }
+    }*/
     // Created by Prashant
-	// Checking if the position is on the board
-	bool onBoard(int row, int col) {
-		return row >= 0 && row < size && col >= 0 && col < size;
-	}
+    // Checking if the position is on the board
+    bool onBoard(int row, int col) {
+        return row >= 0 && row < size && col >= 0 && col < size;
+    }
 
     // Getting the neighbors of the current position
     vector<pair<int, int>> getNeighbors(int row, int col) {
@@ -67,17 +85,19 @@ public:
 
     // recursively checking for suicide moves, ko
     // Created by Prashant
-    bool moveCheck(int row, int col, char player, set<pair<int, int>>& visited) {
-        if (!onBoard(row, col) || visited.count({row, col}) || board[row][col] != player) {
+    // Modified by Rhett
+    bool moveCheck(int row, int col, Space_Types player, set<pair<int, int>>& visited) {
+        const std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
+        if (!onBoard(row, col) || visited.count({ row, col }) || board[row][col] != player) {
             return false;
         }
-        visited.insert({row, col}); //checking whether the current index has been visit previously or not
+        visited.insert({ row, col }); //checking whether the current index has been visit previously or not
 
         for (const auto& neighbor : getNeighbors(row, col)) {
             int r = neighbor.first;
             int c = neighbor.second;
             if (onBoard(r, c)) {
-                if (board[r][c] == '.') return true;
+                if (board[r][c] == EMPTY) return true;
                 if (board[r][c] == player && moveCheck(r, c, player, visited)) return true;
             }
         }
@@ -86,8 +106,10 @@ public:
 
     // remove the captured stones
     // Created by Prashant
-    void removeStones(int row, int col, char player) {
-        board[row][col] = '.';
+    // Modified by Rhett
+    void removeStones(int row, int col, Space_Types player) {
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
+        board[row][col] = EMPTY;
         for (const auto& neighbor : getNeighbors(row, col)) {
             int r = neighbor.first;
             int c = neighbor.second;
@@ -97,9 +119,12 @@ public:
         }
     }
     // Created by Prashant
+    // Modified by Rhett
     // check for captures and remove
     void checkCaptures(int row, int col) {
-        char opponent = (currentPlayer == 'W') ? 'B' : 'W';
+        //char opponent = (currentPlayer == 'W') ? 'B' : 'W';
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
+        Space_Types opponent = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
 
         for (const auto& neighbor : getNeighbors(row, col)) {
             int r = neighbor.first;
@@ -116,53 +141,58 @@ public:
     }
 
     // Created by Ethan
-    bool placeStone(string move) {
-        if (move == "quit") return false; // Quit to menu
+    // Modified by Rhett
+    bool placeStone(int row, int col) { //Using 0 based indexing here
 
-
-		// Added by Prashant
+        // Added by Prashant
         // Checking for pass
-        if (move == "pass") {
+        /*if (move == "pass") {
             passCount++;
             currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';
             return true;
-        }
-		passCount = 0; // Passcount = 0 if the player makes a move
+        }*/
+        //passCount = 0; // Passcount = 0 if the player makes a move
 
-        if (move.length() < 2) return false; // Invalid input check
+        //if (move.length() < 2) return false; // Invalid input check
 
-        char rowChar = toupper(move[0]); // Convert row letter to uppercase
-        int row = rowChar - 'A';
+        //char rowChar = toupper(move[0]); // Convert row letter to uppercase
+        //int row = rowChar - 'A';
 
         // Convert the column number safely
-        int col;
-        stringstream ss(move.substr(1));
-        if (!(ss >> col)) return false;  // Ensure conversion is valid
+        //int col;
+        //stringstream ss(move.substr(1));
+        //if (!(ss >> col)) return false;  // Ensure conversion is valid
 
-        if (row < 0 || row >= size || col < 0 || col >= size || board[row][col] != '.') {
-            return false; // Catch input off board
-        }
+        //if (row < 0 || row >= size || col < 0 || col >= size || board[row][col] != '.') {
+            //return false; // Catch input off board
+        //}
 
-        board[row][col] = currentPlayer; // Set current player stone location
+        bool result = this->board_class->place_stone_on_board(row, col, currentPlayer);
+        if (!result) return result;
 
-		// Added by Prashant
-		checkCaptures(row, col); // Check for captures
+        //board[row][col] = currentPlayer; // Set current player stone location
 
+        // Added by Prashant
+        checkCaptures(row, col); // Check for captures
+
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
         set<pair<int, int>> visited;
         //Check for illegal moves
         if (!moveCheck(row, col, currentPlayer, visited)) {
-            board[row][col] = '.';
+            board[row][col] = EMPTY;
             return false; // Illegal suicide move
         }
 
-        currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Swap player
-        return true;
+        return result;
     }
 
+
     // Added by Prashant
+    // Modified by Rhett
     // total score= n of placed stones+captured territory
     void calculateScores() {
         // initializing scores
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
         int whiteScore = 0, blackScore = 0;
         map<char, int> stoneCount = { {'W', 0}, {'B', 0} };
         vector<vector<bool>> visited(size, vector<bool>(size, false));
@@ -170,28 +200,28 @@ public:
         // Count placed stones
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                if (board[row][col] == 'W') stoneCount['W']++;
-                if (board[row][col] == 'B') stoneCount['B']++;
+                if (board[row][col] == WHITE) stoneCount['W']++;
+                if (board[row][col] == BLACK) stoneCount['B']++;
             }
         }
 
         // Checking for captured territory and their owners
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                if (board[row][col] == '.' && !visited[row][col]) {
+                if (board[row][col] == EMPTY && !visited[row][col]) {
                     set<pair<int, int>> territory;
-                    set<char> surroundingColors;
+                    set<Space_Types> surroundingColors;
                     territoryCheck(row, col, territory, surroundingColors, visited);
 
                     if (surroundingColors.size() == 1) {
-                        char owner = *surroundingColors.begin();
-                        if (owner == 'W') whiteScore += territory.size();
-                        else if (owner == 'B') blackScore += territory.size();
+                        Space_Types owner = *surroundingColors.begin();
+                        if (owner == WHITE) whiteScore += static_cast<int>(territory.size());
+                        else if (owner == BLACK) blackScore += static_cast<int>(territory.size());
                     }
                 }
             }
         }
-		// Adding the stone count to the score
+        // Adding the stone count to the score
         whiteScore += stoneCount['W'];
         blackScore += stoneCount['B'];
 
@@ -200,7 +230,7 @@ public:
         cout << "White (W): " << whiteScore << "\n";
         cout << "Black (B): " << blackScore << "\n";
 
-		// Checking for winner
+        // Checking for winner
         if (whiteScore > blackScore)
             cout << "White Wins!\n";
         else if (blackScore > whiteScore)
@@ -209,12 +239,15 @@ public:
             cout << "It's a tie!\n";
     }
 
-	//Added by Prashant
+    //Added by Prashant
+    // Modified by Rhett
     //  recursively checking for empty regions and determining their ownership
-    void territoryCheck(int row, int col, set<pair<int, int>>& territory, set<char>& surroundingColors, vector<vector<bool>>& visited) {
+    void territoryCheck(int row, int col, set<pair<int, int>>& territory, set<Space_Types>& surroundingColors, vector<vector<bool>>& visited) {
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
+
         if (!onBoard(row, col) || visited[row][col]) return;
         visited[row][col] = true;
-        if (board[row][col] == '.') {
+        if (board[row][col] == EMPTY) {
             territory.insert({ row, col });
             for (const auto& neighbor : getNeighbors(row, col)) {
                 territoryCheck(neighbor.first, neighbor.second, territory, surroundingColors, visited);
@@ -226,14 +259,16 @@ public:
     }
 
     //Added by Prashant
+    // Modified by Rhett
     // func to allow the bot to make random moves
     bool botMove() {
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
         vector<pair<int, int>> emptySpaces;
         srand(time(0));
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                if (board[row][col] == '.') {
-                    emptySpaces.push_back({row, col});
+                if (board[row][col] == EMPTY) {
+                    emptySpaces.push_back({ row, col });
                 }
             }
         }
@@ -246,7 +281,8 @@ public:
         int col = emptySpaces[randomIndex].second;
 
         // Place the bot's stone
-        board[row][col] = currentPlayer;
+        //board[row][col] = currentPlayer;
+        bool result = this->board_class->place_stone_on_board(row, col, currentPlayer);
 
         // Checking for captures
         checkCaptures(row, col);
@@ -254,19 +290,19 @@ public:
         set<pair<int, int>> visited;
         // stopping illegal moves
         if (!moveCheck(row, col, currentPlayer, visited)) {
-            board[row][col] = '.';
+            board[row][col] = EMPTY;
             return false;
         }
 
-        currentPlayer = (currentPlayer == 'W') ? 'B' : 'W'; // Switch players
-        return true;
+        return result;
     }
 
 
     // Gameplay loop
     // Created by Ethan
+    // Modified by Rhett
     void play() {
-        string move;
+        /*string move;
         string gameMode;
         // Added by Prashant
         // Choose game mode
@@ -299,8 +335,8 @@ public:
                             passCount++;
                             currentPlayer = 'B';
                         }
-                    } 
-                    else { // For Player vs Player 
+                    }
+                    else { // For Player vs Player
                         cout << "Player " << currentPlayer << ", enter move (e.g., A0), 'pass' to skip: ";
                         cin >> move;
 
@@ -315,92 +351,83 @@ public:
                 return;
             }
         }
+    }*/
+        std::unique_ptr<std::pair<float, float>> input_coords;
+        window->display();
+        while (1) {
+
+            while (1) {
+                input_coords = window->get_input();
+                if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
+            }
+            window->display();
+            window->clear();
+
+            std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
+            currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
+        }
     }
+
+
 };
 
-// Created by Ethan
-void mainMenu() {
-    while (true) {
-        // Initial game menu
-        cout << "\n===== Go Game Menu =====\n";
-        cout << "1. Start a new game\n";
-        cout << "2. Quit\n";
-        cout << "Enter choice: ";
+    // Created by Ethan
+    void mainMenu() {
+        while (true) {
+            // Initial game menu
+            cout << "\n===== Go Game Menu =====\n";
+            cout << "1. Start a new game\n";
+            cout << "2. Quit\n";
+            cout << "Enter choice: ";
 
-        int choice;
-        cin >> choice;
+            int choice;
+            cin >> choice;
 
-        if (cin.fail()) {
-            // Clear the error state and ignore invalid input
-            cin.clear();
-            //cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input! Please enter 1 or 2.\n";
-            continue;
-        }
-
-        if (choice == 2) {
-            // Exit game from menu
-            cout << "Exiting game. Goodbye!\n";
-            return;
-        }
-        else if (choice == 1) {
-            // Start game loop
-            int boardSize;
-            cout << "Choose board size (5, 9, 13, 19): ";
-            cin >> boardSize;
-
-            // Build board from chosen size
-            if (cin.fail() || (boardSize != 5 && boardSize != 9 && boardSize != 13 && boardSize != 19)) {
+            if (cin.fail()) {
+                // Clear the error state and ignore invalid input
                 cin.clear();
-                //cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Invalid board size. Defaulting to 5x5.\n";
-                boardSize = 5;
+                //cin.ignore(numeric_limits<streamsize>::max(), '\n'); //This line is recognized as a syntax error for me(Rhett)
+                cout << "Invalid input! Please enter 1 or 2.\n";
+                continue;
             }
 
-            // Draw board and start gameplay loop
-            GoGame game(boardSize);
-            game.play();
+            if (choice == 2) {
+                // Exit game from menu
+                cout << "Exiting game. Goodbye!\n";
+                return;
+            }
+            else if (choice == 1) {
+                // Start game loop
+                int boardSize;
+                cout << "Choose board size (5, 9, 13, 19): ";
+                cin >> boardSize;
+
+                // Build board from chosen size
+                if (cin.fail() || (boardSize != 5 && boardSize != 9 && boardSize != 13 && boardSize != 19)) {
+                    cin.clear();
+                    //cin.ignore(numeric_limits<streamsize>::max(), '\n'); //This line is recognized as a syntax error for me(Rhett)
+                    cout << "Invalid board size. Defaulting to 5x5.\n";
+                    boardSize = 5;
+                }
+
+                // Draw board and start gameplay loop
+                GoGame game(boardSize);
+                game.play();
+            }
+            else {
+                // Error catch for invalid input
+                cout << "Invalid choice! Please enter 1 or 2.\n";
+            }
         }
-        else {
-            // Error catch for invalid input
-            cout << "Invalid choice! Please enter 1 or 2.\n";
-        }
+
     }
 
-}
+    // Created by Ethan
+    int main() {
+        mainMenu();
 
-// Created by Ethan
-int main() {
-    mainMenu();
 
-    
-    int screenWidth = 120;
-    int screenHeight = 60;
-    
-    int stoneField_size = 19;
-    int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
-    int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
-    std::shared_ptr<Board> board = std::make_shared<Board>(
-        boardWidth,
-        boardHeight,
-        stoneField_size,
-        (screenWidth - boardWidth) / 2,
-        (screenHeight - boardHeight) / 2
-    );
-    ConsoleWindow window(screenHeight, screenWidth, board);
 
-    Space_Types turn = WHITE;
-    window.display();
-    while(1){
-
-        while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
-                                                        //Problem is, it depends on mouse input.  I will figure this out later.
-        window.display();
-        window.clear();
-        
-        std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
-        turn = static_cast<Space_Types>(!static_cast<bool>(turn));
+        return 0;
     }
 
-    return 0;*/
-}

@@ -30,6 +30,8 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 	oneD_screen(std::vector<wchar_t>(sHeight * sWidth, L' ')),
 	board(b)
 {
+	board_copy = board->board;
+
 	console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(console_handle);
 
@@ -45,7 +47,6 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 //Rhett Thompson
 void ConsoleWindow::display() {
 	//Writes the screen characters to the console
-	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
 	board->draw_stone_sprites(board_copy); //Draw the stones over the copy
 	place_board_on_screen(); //Display the copy
 	one_dimensionalize();
@@ -55,7 +56,9 @@ void ConsoleWindow::display() {
 
 //Rhett Thompson
 //This does nothing here
-void ConsoleWindow::clear() { return; }
+void ConsoleWindow::clear() {
+	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
+}
 
 
 //Rhett Thompson
@@ -143,15 +146,14 @@ std::unique_ptr<MOUSE_EVENT_RECORD> ConsoleWindow::get_mouse_coord_on_click() {
 }
 
 //Rhett Thompson
-bool ConsoleWindow::place_stone_for_player(Space_Types player) {
+std::unique_ptr<std::pair<float,float>> ConsoleWindow::get_input() {
 	//Places a stone on the board based on the mouse coordinates
 	std::unique_ptr<MOUSE_EVENT_RECORD> mouse_event = get_mouse_coord_on_click();
-	if (!mouse_event) return false;
 
-	int true_col = static_cast<int>(std::roundf((static_cast<float>(mouse_event->dwMousePosition.X) - static_cast<float>(board->x_pos)) / board->board_width_between_cols)) + 1;
-	int true_row = static_cast<int>(std::roundf((static_cast<float>(mouse_event->dwMousePosition.Y) - static_cast<float>(board->y_pos)) / board->board_height_between_rows)) + 1;
+	int true_col = static_cast<int>(std::roundf((static_cast<float>(mouse_event->dwMousePosition.X) - static_cast<float>(board->x_pos)) / board->board_width_between_cols));
+	int true_row = static_cast<int>(std::roundf((static_cast<float>(mouse_event->dwMousePosition.Y) - static_cast<float>(board->y_pos)) / board->board_height_between_rows));
 
-	return this->board->place_stone_on_board(true_row, true_col, player);
+	return std::make_unique<std::pair<float, float>>(true_row, true_col);
 }
 
 

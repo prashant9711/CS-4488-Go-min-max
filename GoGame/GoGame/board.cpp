@@ -88,12 +88,12 @@ int Board::calc_piece_space(float space) {
 
 
 //Rhett Thompson
-bool Board::place_stone_on_board(int row, int col, Space_Types player){
+bool Board::place_stone_on_board(int row, int col, Space_Types player){ //This uses 0 based indexing
 	//Places a stone
-	if (row > stoneField_size || col > stoneField_size || row < 1 || col < 1) return false;
-	if (stones[row-1][col-1] != Space_Types::EMPTY) return false;
+	if (row > stoneField_size || col > stoneField_size || row < 0 || col < 0) return false;
+	if (stones[row][col] != Space_Types::EMPTY) return false;
 
-	stones[row - 1][col - 1] = player;
+	stones[row][col] = player;
 	return true;
 }
 

@@ -46,7 +46,9 @@ class Board {
 		bool place_stone_on_board(int col, int row, Space_Types player);
 
 
-		std::vector<std::vector<Space_Types>>& getStones();
+		std::vector<std::vector<Space_Types>>& getStones() {
+			return stones;
+		}
 		void delete_stone(int row, int col);
 
 

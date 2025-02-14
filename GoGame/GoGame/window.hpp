@@ -29,6 +29,7 @@ class Window {
 
 		Window(int sHeight, int sWidth): screenHeight(sHeight), screenWidth(sWidth){}
 
+		virtual std::unique_ptr<std::pair<float, float>> get_input() = 0;
 		virtual void display() = 0;
 		virtual void clear() = 0;
 
@@ -36,7 +37,7 @@ class Window {
 
 
 //Rhett Thompson
-class ConsoleWindow : Window {
+class ConsoleWindow : public Window {
 
 	private:
 
@@ -61,7 +62,7 @@ class ConsoleWindow : Window {
 		ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> board);
 		~ConsoleWindow();
 
-		bool place_stone_for_player(Space_Types player);
+		std::unique_ptr<std::pair<float, float>> get_input();
 
 		void display();
 		void clear();
