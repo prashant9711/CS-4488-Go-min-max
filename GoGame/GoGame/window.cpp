@@ -19,6 +19,8 @@
 #include <cmath>
 #endif
 
+#include <iostream>
+
 
 
 //Rhett Thompson
@@ -43,7 +45,9 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 //Rhett Thompson
 void ConsoleWindow::display() {
 	//Writes the screen characters to the console
-	place_board_on_screen();
+	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
+	board->draw_stone_sprites(board_copy); //Draw the stones over the copy
+	place_board_on_screen(); //Display the copy
 	one_dimensionalize();
 	//draw_turn_info();
 	WriteConsoleOutputCharacter(console_handle, oneD_screen.data(), screenWidth * screenHeight, { 0,0 }, &dwBytesWritten);
@@ -63,10 +67,17 @@ ConsoleWindow::~ConsoleWindow() {
 //Rhett Thompson
 void ConsoleWindow::place_board_on_screen() {
 	//Places the board in the screen vector
-	for (int i = 0; i < board->boardHeight; i++) {
-		for (int j = 0; j < board->boardWidth; j++) {
-			screen[this->board->y_pos + i][this->board->x_pos + j] = board->board[i][j];
+	try {
+		for (int i = 0; i < board->boardHeight; i++) {
+			for (int j = 0; j < board->boardWidth; j++) {
+				screen[this->board->y_pos + i][this->board->x_pos + j] = board_copy[i][j];
+			}
 		}
+	}
+	catch (std::exception& e) {
+		CloseHandle(console_handle);
+		std::cerr << e.what() << std::endl;
+		exit(-1);
 	}
 }
 

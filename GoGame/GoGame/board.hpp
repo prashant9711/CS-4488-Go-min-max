@@ -38,6 +38,7 @@ class Board {
 		std::vector<std::vector<wchar_t>> build_piece(wchar_t ch);
 		int calc_piece_space(float space);
 		void init_board();
+		void draw_stone_sprites(std::vector<std::vector<wchar_t>>& board_copy) const;
 
 	public:
 
@@ -46,6 +47,7 @@ class Board {
 
 
 		std::vector<std::vector<Space_Types>>& getStones();
+		void delete_stone(int row, int col);
 
 
 
