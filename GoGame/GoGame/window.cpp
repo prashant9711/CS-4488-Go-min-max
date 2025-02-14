@@ -67,17 +67,11 @@ ConsoleWindow::~ConsoleWindow() {
 //Rhett Thompson
 void ConsoleWindow::place_board_on_screen() {
 	//Places the board in the screen vector
-	try {
-		for (int i = 0; i < board->boardHeight; i++) {
-			for (int j = 0; j < board->boardWidth; j++) {
-				screen[this->board->y_pos + i][this->board->x_pos + j] = board_copy[i][j];
-			}
+
+	for (int i = 0; i < board->boardHeight; i++) {
+		for (int j = 0; j < board->boardWidth; j++) {
+			screen[this->board->y_pos + i][this->board->x_pos + j] = board_copy[i][j];
 		}
-	}
-	catch (std::exception& e) {
-		CloseHandle(console_handle);
-		std::cerr << e.what() << std::endl;
-		exit(-1);
 	}
 }
 
