@@ -25,6 +25,7 @@ private:
     // Initial variables for board and game creation
     int size;
     vector<vector<char>> board;
+    //std::shared_ptr<Board> board;
     char currentPlayer;
 
 public:
@@ -135,6 +136,7 @@ void mainMenu() {
             cout << "Invalid choice! Please enter 1 or 2.\n";
         }
     }
+
 }
 
 // Created by Ethan
@@ -159,16 +161,17 @@ int main() {
 
     Space_Types turn = WHITE;
     window.display();
-    while(1){
+
+    while (1) {
 
         while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
-                                                        //Problem is, it depends on mouse input.  I will figure this out later.
+        //Problem is, it depends on mouse input.  I will figure this out later.
         window.display();
         window.clear();
-        
+
         std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
         turn = static_cast<Space_Types>(!static_cast<bool>(turn));
     }
-
+        
     return 0;
 }

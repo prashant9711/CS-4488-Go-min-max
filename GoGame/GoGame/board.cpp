@@ -89,25 +89,39 @@ int Board::calc_piece_space(float space) {
 
 //Rhett Thompson
 bool Board::place_stone_on_board(int row, int col, Space_Types player){
-	//Places a character sprite on the board
-	//I plan on seperating this so that drawing stones depends on the stones vector
+	//Places a stone
 	if (row > stoneField_size || col > stoneField_size || row < 1 || col < 1) return false;
 	if (stones[row-1][col-1] != Space_Types::EMPTY) return false;
 
 	stones[row - 1][col - 1] = player;
-	const std::vector<std::vector<wchar_t>>& stone_sprite = static_cast<bool>(player) ? black_stone : white_stone;
-	int sprite_height = static_cast<int>(stone_sprite.size());
-	int sprite_width = static_cast<int>(stone_sprite[0].size());
+	return true;
+}
+
+//Rhett Thompson
+void Board::draw_stone_sprites(std::vector<std::vector<wchar_t>>& board_copy) const{
+	//Iterate through the stones and draw their sprites
+	const std::vector<std::vector<wchar_t>>* stone_sprite;
+	int sprite_height;
+	int sprite_width;
 	int row_calc, col_calc, r, c;
-	for (int i = 0; i < sprite_height; i++) {
-		for (int j = 0; j < sprite_width; j++) {
-			row_calc = static_cast<int>(static_cast<float>(row - 1) * board_height_between_rows) - (sprite_height >> 1) + i;
-			col_calc = static_cast<int>(static_cast<float>(col - 1) * board_width_between_cols) - (sprite_width >> 1) + j;
-			r = row_calc + ((sprite_height >> 1) * (row_calc < 0)) - 2 * ((sprite_height >> 1) * (row_calc > boardHeight - 1)) - ((sprite_height >> 1) == 0 && (row_calc > boardHeight - 1));
-			c = col_calc + ((sprite_width >> 1) * (col_calc < 0)) - 2 * ((sprite_width >> 1) * (col_calc > boardWidth - 1)) - ((sprite_width >> 1) == 0 && (col_calc > boardWidth - 1));
-			board[r][c]= stone_sprite[i][j];
+
+	for (size_t s = 0; s < stones.size(); s++) {
+		for (size_t t = 0; t < stones[s].size(); t++) {
+			if (stones[s][t] == EMPTY) continue;
+
+			stone_sprite = static_cast<bool>(stones[s][t]) ? (&black_stone) : (&white_stone);
+			sprite_height = static_cast<int>(stone_sprite->size());
+			sprite_width = static_cast<int>(((*stone_sprite)[0]).size());
+			for (int i = 0; i < sprite_height; i++) {
+				for (int j = 0; j < sprite_width; j++) {
+					row_calc = static_cast<int>(static_cast<float>(s) * board_height_between_rows) - (sprite_height >> 1) + i;
+					col_calc = static_cast<int>(static_cast<float>(t) * board_width_between_cols) - (sprite_width >> 1) + j;
+					r = row_calc + ((sprite_height >> 1) * (row_calc < 0)) - 2 * ((sprite_height >> 1) * (row_calc > boardHeight - 1)) - ((sprite_height >> 1) == 0 && (row_calc > boardHeight - 1));
+					c = col_calc + ((sprite_width >> 1) * (col_calc < 0)) - 2 * ((sprite_width >> 1) * (col_calc > boardWidth - 1)) - ((sprite_width >> 1) == 0 && (col_calc > boardWidth - 1));
+					board_copy[r][c] = (*stone_sprite)[i][j];
+				}
+			}
 		}
 	}
 
-	return true;
 }
