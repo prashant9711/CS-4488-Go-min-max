@@ -44,8 +44,9 @@ class ConsoleWindow : Window {
 		std::vector<wchar_t> oneD_screen;
 
 		std::shared_ptr<Board> board;
+		std::vector<std::vector<wchar_t>> board_copy;
 
-		HANDLE hConsole;
+		HANDLE console_handle;
 		DWORD dwBytesWritten = 0;
 
 		void place_board_on_screen();
@@ -65,6 +66,22 @@ class ConsoleWindow : Window {
 		void display();
 		void clear();
 };
+
+
+//I will probably make a new kind of window here that just prints to the console instead.
+	/*char arr[] = {92, 124, 47, 0};
+	int i = 0;
+	while (1) {
+		for (int k = 0; k < 30; k++) {
+			for (int j = 0; j < 50; j++) {
+				printf("%c", arr[(i+k) % 3]);
+			}
+			printf("\n");
+		}
+		std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.1));
+		i++;
+		system("cls");
+	}*/
 
 
 

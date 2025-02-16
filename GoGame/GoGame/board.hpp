@@ -14,6 +14,8 @@ enum Space_Types {
 	BLACK = 1
 };
 
+
+
 //Rhett Thompson
 class Board {
 	friend class ConsoleWindow;
@@ -36,12 +38,18 @@ class Board {
 		std::vector<std::vector<wchar_t>> build_piece(wchar_t ch);
 		int calc_piece_space(float space);
 		void init_board();
+		void draw_stone_sprites(std::vector<std::vector<wchar_t>>& board_copy) const;
 
 	public:
 
 		Board(int bWidth, int bHeight, int stone_amount, int x_pos, int y_pos);
 		bool place_stone_on_board(int col, int row, Space_Types player);
-		
+
+
+		std::vector<std::vector<Space_Types>>& getStones();
+		void delete_stone(int row, int col);
+
+
 
 };
 
