@@ -7,14 +7,24 @@
 #include <limits>
 #include <thread>
 #include <chrono>
+#include <limits>
 #include <set>
 #include <map>
+#include <chrono>
+#include <algorithm>
+
+using namespace std::chrono;
+
 #ifndef GO_WINDOW
 #include "window.hpp"
 #endif
 
 #ifndef GO_BOARD
 #include "board.hpp"
+#endif
+
+#ifndef ALPHA_BETA_PRUNING_H
+#include "alpha-beta-pruning.h"
 #endif
 
 
@@ -262,6 +272,76 @@ public:
         return true;
     }
 
+    // added by Andrija Sevaljevic
+    // This function will decide best move for bot based on pruning min max algorithm
+    bool alphaBetaMove() {
+        vector<pair<int, int>> emptySpaces;
+
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (board[row][col] == '.') {
+                    emptySpaces.push_back({ row, col });
+                }
+            }
+        }
+
+        if (emptySpaces.empty()) return false; // No valid moves left (pass)
+
+        // Convert char board to int board (-1 = black, 1 = white, 0 = empty)
+        vector<vector<int>> intBoard(size, vector<int>(size, 0));
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == 'B') intBoard[i][j] = -1;
+                else if (board[i][j] == 'W') intBoard[i][j] = 1;
+            }
+        }
+
+        // Create root node
+        Node* root = new Node(intBoard, size);
+
+        // Generate possible moves
+        generateChildren(root, (currentPlayer == 'W'));
+
+        if (root->children.empty()) {
+            delete root;  // No possible moves
+            return false;
+        }
+
+        // Run alpha-beta pruning
+        int bestValue = -1000;
+        Node* bestMove = nullptr;
+
+        for (Node* child : root->children) {
+            auto startTime = steady_clock::now();
+            int eval = alphaBeta(child, 3, -1000, 1000, false, startTime);
+            if (eval > bestValue) {
+                bestValue = eval;
+                bestMove = child;
+            }
+        }
+
+        if (bestMove) {
+            int row = bestMove->moveX;
+            int col = bestMove->moveY;
+            board[row][col] = currentPlayer;
+
+            // Check captures
+            checkCaptures(row, col);
+
+            // Prevent illegal moves
+            set<pair<int, int>> visited;
+            if (!moveCheck(row, col, currentPlayer, visited)) {
+                board[row][col] = '.';  // Undo move
+                delete root;
+                return false;
+            }
+
+            currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Switch turns
+        }
+
+        delete root;  // Free memory
+        return true;
+    }
 
     // Gameplay loop
     // Created by Ethan
@@ -294,7 +374,7 @@ public:
                 // Added by Prashant
                     if (gameMode == "2") { // If Player vs Bot
                         cout << "Bot (" << currentPlayer << ") is making a move...\n";
-                        if (!botMove()) {
+                        if (!alphaBetaMove()) {
                             cout << "No valid moves left for the bot. Passing turn.\n";
                             passCount++;
                             currentPlayer = 'B';
@@ -402,5 +482,5 @@ int main() {
         turn = static_cast<Space_Types>(!static_cast<bool>(turn));
     }
 
-    return 0;*/
+    return 0;
 }
