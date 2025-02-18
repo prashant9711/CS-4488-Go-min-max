@@ -35,12 +35,54 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 	console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(console_handle);
 
-	//I wish I could get the window to resize here
-	//MoveWindow(window_handle, x, y, width, height, redraw_window);
-	//MoveWindow(hConsole, 100, 100, sWidth, sHeight, TRUE);
-	//SMALL_RECT rect = { 0, 0, sWidth, sHeight };
-	//SetConsoleWindowInfo(hConsole, TRUE, &rect);
-	
+	CONSOLE_FONT_INFOEX cfi;
+	cfi.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+
+	if (!GetCurrentConsoleFontEx(console_handle, FALSE, &cfi)) {
+		CloseHandle(console_handle);
+		std::cerr << "Error: Unable to get current console font info." << std::endl;
+		exit(-1);
+	}
+
+	cfi.dwFontSize.X = 8; 
+	cfi.dwFontSize.Y = 16; 
+
+	//wcscpy_s(cfi.FaceName, L"Consolas");
+
+	if (!SetCurrentConsoleFontEx(console_handle, FALSE, &cfi)) {
+		CloseHandle(console_handle);
+		std::cerr << "Error: Unable to set console font." << std::endl;
+		exit(-1);
+	}
+
+	COORD bufferSize;
+	bufferSize.X = sWidth;
+	bufferSize.Y = sHeight;  
+
+
+	SMALL_RECT windowSize;
+	windowSize.Left = 0;
+	windowSize.Top = 0;
+	windowSize.Right = bufferSize.X - 1;
+	windowSize.Bottom = bufferSize.Y - 1;
+
+	if (!SetConsoleWindowInfo(console_handle, TRUE, &windowSize)) {
+		DWORD err = GetLastError();
+		CloseHandle(console_handle);
+		std::cerr << "Error: Unable to set console window size." << std::endl;
+		std::cerr << "SetConsoleWindowInfo returned: " << err << std::endl;
+		exit(-1);
+	}
+
+	if (!SetConsoleScreenBufferSize(console_handle, bufferSize)) {
+		DWORD err = GetLastError();
+		CloseHandle(console_handle);
+		std::cerr << "Error: Unable to set console screen buffer size." << std::endl;
+		std::cerr << "SetConsoleScreenBufferSize returned: " << err << std::endl;
+		exit(-1);
+	}
+
+
 	draw_row_and_col_labels();
 }
 
