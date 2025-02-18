@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <set>
 #include <vector>
+#include <unordered_set>
 
 using namespace std;
 using namespace std::chrono;
@@ -52,7 +53,7 @@ bool moveCheck(int row, int col, int player, Node* node, set<pair<int, int>>& vi
 // remove the captured stones
 // Modified to match data structure by Andrija Sevaljevic
 // Created by Prashant
-int removeStones(int row, int col, char player, Node* node) {
+int removeStones(int row, int col, int player, Node* node) {
     node->board[row][col] = 0;
     for (const auto& neighbor : getNeighbors(row, col)) {
         int r = neighbor.first;
@@ -79,14 +80,14 @@ int checkCaptures(bool currentPlayer, Node* node) {
         if (onBoard(r, c, node->boardSize) && node->board[r][c] == opponent) {
 
             set<pair<int, int>> visited;
-            if (!moveCheck(r, c, opponent,node, visited)) {
+            if (!moveCheck(r, c, opponent, node, visited)) {
                 for (const auto& stone : visited) {
                     captures += removeStones(stone.first, stone.second, opponent, node);
                 }
             }
-
         }
     }
+    captures = (currentPlayer) ? captures : captures * -1;
     return captures;
 }
 
@@ -119,10 +120,11 @@ int countLiberties(int row, int col, int player, Node* node, set<pair<int, int>>
 // This function calcaultes the strength of a move
 int evaluateBoard(bool currentTurn, Node* node) {
     int score = 0;
+    int currentTurnStone = currentTurn ? -1 : 1;
 
     // Capture score
-    score += checkCaptures(currentTurn, node);
-    if (currentTurn) score = score * -1;  // Reverse score if it's the maximizing player
+    score += checkCaptures(currentTurn, node) * 300;
+    if(score == 0) score += checkCaptures(!currentTurn, node) * 300;
 
     // Evaluate liberties and weaknesses
     int liberties = 0;
@@ -132,10 +134,10 @@ int evaluateBoard(bool currentTurn, Node* node) {
 
     for (int x = 0; x < node->boardSize; ++x) {
         for (int y = 0; y < node->boardSize; ++y) {
-            if (node->board[x][y] == currentTurn) {  // Player's stones
+            if (node->board[x][y] == currentTurnStone) {  // Player's stones
                 // Count liberties for each stone
                 set<pair<int, int>> visited;
-                int libertiesForStone = countLiberties(x, y, currentTurn, node, visited);
+                int libertiesForStone = countLiberties(x, y, currentTurnStone, node, visited);
                 liberties += libertiesForStone;
                 totalLiberties += libertiesForStone;
 
@@ -151,12 +153,13 @@ int evaluateBoard(bool currentTurn, Node* node) {
     score -= weakStones * 5;  // Arbitrary penalty for weak stones
 
     // Encourage strong groups (high liberties)
-    score += liberties * 2;  // Encourage more liberties per stone
+    score += liberties * 15;  // Encourage more liberties per stone
 
     // For simplicity, group strength could be based on liberties
     groupStrength = totalLiberties / (node->boardSize * node->boardSize);
     score += groupStrength * 10;
 
+    if (currentTurn) score = score * -1;  // Reverse score if it's the maximizing player
 
     return score;
 }
@@ -179,7 +182,7 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
 
     // Ensure children are generated for this node if not already done
     if (node->children.empty()) {
-        generateChildren(node, maximizingPlayer);
+        generateNChildren(node, maximizingPlayer);
     }
 
     if (node->children.empty()) {
@@ -237,19 +240,21 @@ void generateNChildren(Node* node, bool isMaximizing) {
                 std::vector<std::vector<int>> newBoard = node->board;
                 newBoard[x][y] = playerValue;
 
-                // Evaluate the position with a heuristic
-                int evaluationScore = evaluateBoard(isMaximizing, node);
 
                 // Create the new node and add it to the list with its evaluation score
-                Node* childNode = new Node(newBoard, node->boardSize, x, y, evaluationScore, node);
-                evaluatedChildren.push_back({ evaluationScore, childNode });
+                Node* childNode = new Node(newBoard, node->boardSize, x, y, 0, node);
+                childNode->value = evaluateBoard(isMaximizing, childNode);
+                evaluatedChildren.push_back({ childNode->value, childNode });
             }
         }
     }
 
     // Sort children based on the evaluation score (highest first)
-    std::sort(evaluatedChildren.begin(), evaluatedChildren.end(), [](const auto& a, const auto& b) {
-        return a.first > b.first;  // Maximizing, so we want highest scores
+    std::partial_sort(evaluatedChildren.begin(),
+        evaluatedChildren.begin() + std::min(10, (int)evaluatedChildren.size()),
+        evaluatedChildren.end(),
+        [](const auto& a, const auto& b) {
+            return a.first > b.first;
         });
 
     // Add the top 10 (or fewer if there are not enough) to the node's children list

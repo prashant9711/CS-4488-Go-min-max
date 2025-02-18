@@ -300,7 +300,7 @@ public:
         Node* root = new Node(intBoard, size);
 
         // Generate possible moves
-        generateChildren(root, (currentPlayer == 'W'));
+        generateNChildren(root, (currentPlayer == 'W'));
 
         if (root->children.empty()) {
             delete root;  // No possible moves
@@ -313,7 +313,7 @@ public:
 
         for (Node* child : root->children) {
             auto startTime = steady_clock::now();
-            int eval = alphaBeta(child, 3, -1000, 1000, false, startTime);
+            int eval = alphaBeta(child, 4, -1000, 1000, false, startTime);
             if (eval > bestValue) {
                 bestValue = eval;
                 bestMove = child;
@@ -426,11 +426,11 @@ void mainMenu() {
         else if (choice == 1) {
             // Start game loop
             int boardSize;
-            cout << "Choose board size (5, 9, 13, 19): ";
+            cout << "Choose board size (5, 7, 9, 13, 19): ";
             cin >> boardSize;
 
             // Build board from chosen size
-            if (cin.fail() || (boardSize != 5 && boardSize != 9 && boardSize != 13 && boardSize != 19)) {
+            if (cin.fail() || (boardSize != 5 && boardSize != 7 && boardSize != 9 && boardSize != 13 && boardSize != 19)) {
                 cin.clear();
                 //cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 cout << "Invalid board size. Defaulting to 5x5.\n";

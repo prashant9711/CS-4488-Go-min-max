@@ -16,6 +16,7 @@ struct Node;
 
 // Function declarations for alpha-beta pruning
 void generateChildren(Node* node, bool isMaximizing);
+void generateNChildren(Node* node, bool isMaximizing);
 int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer, steady_clock::time_point startTime);
 int evaluateBoard(const std::vector<std::vector<int>>& board);
 
