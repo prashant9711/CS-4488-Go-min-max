@@ -424,7 +424,21 @@ public:
 
     // Created by Ethan
     int main() {
-        mainMenu();
+        //mainMenu();
+
+        char arr[] = {92, 124, 47, 0};
+        int i = 0;
+        while (1) {
+            for (int k = 0; k < 30; k++) {
+                for (int j = 0; j < 50; j++) {
+                    printf("%c", arr[(i+k) % 3]);
+                }
+                printf("\n");
+            }
+            std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.1));
+            i++;
+            system("cls");
+    }
 
 
 
