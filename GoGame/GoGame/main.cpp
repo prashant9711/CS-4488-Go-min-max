@@ -343,6 +343,75 @@ public:
         return true;
     }
 
+    bool alphaBetaMove2() {
+        vector<pair<int, int>> emptySpaces;
+
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (board[row][col] == '.') {
+                    emptySpaces.push_back({ row, col });
+                }
+            }
+        }
+
+        if (emptySpaces.empty()) return false; // No valid moves left (pass)
+
+        // Convert char board to int board (-1 = black, 1 = white, 0 = empty)
+        vector<vector<int>> intBoard(size, vector<int>(size, 0));
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == 'W') intBoard[i][j] = -1;
+                else if (board[i][j] == 'B') intBoard[i][j] = 1;
+            }
+        }
+
+        // Create root node
+        Node* root = new Node(intBoard, size);
+
+        // Generate possible moves
+        generateNChildren(root, (currentPlayer == 'B'));
+
+        if (root->children.empty()) {
+            delete root;  // No possible moves
+            return false;
+        }
+
+        // Run alpha-beta pruning
+        int bestValue = -1000;
+        Node* bestMove = nullptr;
+
+        for (Node* child : root->children) {
+            auto startTime = steady_clock::now();
+            int eval = alphaBeta(child, 4, -1000, 1000, false, startTime);
+            if (eval > bestValue) {
+                bestValue = eval;
+                bestMove = child;
+            }
+        }
+
+        if (bestMove) {
+            int row = bestMove->moveX;
+            int col = bestMove->moveY;
+            board[row][col] = currentPlayer;
+
+            // Check captures
+            checkCaptures(row, col);
+
+            // Prevent illegal moves
+            set<pair<int, int>> visited;
+            if (!moveCheck(row, col, currentPlayer, visited)) {
+                board[row][col] = '.';  // Undo move
+                delete root;
+                return false;
+            }
+
+            currentPlayer = (currentPlayer == 'B') ? 'W' : 'B';  // Switch turns
+        }
+
+        delete root;  // Free memory
+        return true;
+    }
+
     // Gameplay loop
     // Created by Ethan
     void play() {
@@ -361,12 +430,20 @@ public:
             displayBoard();
             //Added by Prashant
             if (currentPlayer == 'B') { // Player's turn
+                /*
                 cout << "Player " << currentPlayer << ", enter move (e.g., A0), 'pass' to skip, or 'quit' to exit: ";
                 cin >> move;
 
                 if (!placeStone(move)) {
                     if (move == "quit") return; // Quit game and return to menu mid game
                     cout << "Invalid move! Try again.\n";
+                }
+                */
+                cout << "Bot (" << currentPlayer << ") is making a move...\n";
+                if (!alphaBetaMove2()) {
+                    cout << "No valid moves left for the bot. Passing turn.\n";
+                    passCount++;
+                    currentPlayer = 'B';
                 }
             }
 

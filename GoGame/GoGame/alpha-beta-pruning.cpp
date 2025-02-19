@@ -123,8 +123,12 @@ int evaluateBoard(bool currentTurn, Node* node) {
     int currentTurnStone = currentTurn ? -1 : 1;
 
     // Capture score
-    score += checkCaptures(currentTurn, node) * 300;
-    if(score == 0) score += checkCaptures(!currentTurn, node) * 300;
+    int capturedStones = checkCaptures(currentTurn, node);
+    score += capturedStones * (20 + (capturedStones * 5));
+    if (score == 0) {
+        capturedStones = checkCaptures(!currentTurn, node);
+        score += capturedStones * (20 + (capturedStones * 5));
+    }
 
     // Evaluate liberties and weaknesses
     int liberties = 0;
@@ -134,14 +138,12 @@ int evaluateBoard(bool currentTurn, Node* node) {
 
     for (int x = 0; x < node->boardSize; ++x) {
         for (int y = 0; y < node->boardSize; ++y) {
-            if (node->board[x][y] == currentTurnStone) {  // Player's stones
-                // Count liberties for each stone
+            if (node->board[x][y] == currentTurnStone) {
                 set<pair<int, int>> visited;
                 int libertiesForStone = countLiberties(x, y, currentTurnStone, node, visited);
                 liberties += libertiesForStone;
                 totalLiberties += libertiesForStone;
 
-                // Check if the stone is in a weak group (few liberties)
                 if (libertiesForStone <= 2) {
                     weakStones++;
                 }
@@ -149,17 +151,12 @@ int evaluateBoard(bool currentTurn, Node* node) {
         }
     }
 
-    // Penalize for weak stones (low liberties)
-    score -= weakStones * 5;  // Arbitrary penalty for weak stones
+    score -= weakStones * 5; // Still penalizing weak stones
+    score += liberties * 10;  // Increased weight on liberties
+    groupStrength = totalLiberties / (node->boardSize);
+    score += groupStrength * 3;
 
-    // Encourage strong groups (high liberties)
-    score += liberties * 15;  // Encourage more liberties per stone
-
-    // For simplicity, group strength could be based on liberties
-    groupStrength = totalLiberties / (node->boardSize * node->boardSize);
-    score += groupStrength * 10;
-
-    if (currentTurn) score = score * -1;  // Reverse score if it's the maximizing player
+    if (currentTurn) score = score * -1;
 
     return score;
 }
@@ -189,10 +186,12 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
         return currentEval; // If no children, return evaluation
     }
 
+    int dynamicDepth = (node->children.size() > 20) ? depth - 1 : depth - 2;
+
     if (maximizingPlayer) {
         int maxEval = std::numeric_limits<int>::min();
         for (Node* child : node->children) {
-            int eval = alphaBeta(child, depth - 1, alpha, beta, false, startTime);
+            int eval = alphaBeta(child, dynamicDepth, alpha, beta, false, startTime);
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
             if (beta <= alpha) break; // Beta cut-off
@@ -202,7 +201,7 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
     else {
         int minEval = std::numeric_limits<int>::max();
         for (Node* child : node->children) {
-            int eval = alphaBeta(child, depth - 1, alpha, beta, true, startTime);
+            int eval = alphaBeta(child, dynamicDepth, alpha, beta, true, startTime);
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
             if (beta <= alpha) break; // Alpha cut-off
@@ -250,16 +249,27 @@ void generateNChildren(Node* node, bool isMaximizing) {
     }
 
     // Sort children based on the evaluation score (highest first)
-    std::partial_sort(evaluatedChildren.begin(),
-        evaluatedChildren.begin() + std::min(10, (int)evaluatedChildren.size()),
-        evaluatedChildren.end(),
+    sort(evaluatedChildren.begin(), evaluatedChildren.end(),
         [](const auto& a, const auto& b) {
             return a.first > b.first;
         });
 
-    // Add the top 10 (or fewer if there are not enough) to the node's children list
-    for (int i = 0; i < std::min(10, (int)evaluatedChildren.size()); ++i) {
+    // Get the total number of generated moves
+    int moveCount = evaluatedChildren.size();
+    int topCount = min(5, moveCount);          // Top 5 moves
+    int midCount = min(5, max(0, moveCount - 5)); // Middle 5 moves
+
+    // Add top 5 moves
+    for (int i = 0; i < topCount; ++i) {
         node->children.push_back(evaluatedChildren[i].second);
+    }
+
+    // Add middle 5 moves (starting after the first 5)
+    int midStartIndex = moveCount / 2;
+    for (int i = midStartIndex; i < midStartIndex + midCount; ++i) {
+        if (i < moveCount) {
+            node->children.push_back(evaluatedChildren[i].second);
+        }
     }
 }
 
