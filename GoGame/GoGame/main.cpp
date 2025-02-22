@@ -17,6 +17,9 @@
 #include "board.hpp"
 #endif
 
+//Comment this out if you want to use the unicode board
+#define PRINT_WINDOW  //If this is defined, then Print_Window will be used
+
 
 using namespace std;
 
@@ -43,7 +46,9 @@ public:
 
         int boardWidth = ((size - 1) * ((screenWidth / (size - 1)) - 2)) + 1;
         int boardHeight = ((size - 1) * ((screenHeight / (size - 1)) - 1)) + 1;
-        board_class = std::make_shared<Board>(
+
+#ifndef PRINT_WINDOW
+        board_class = std::make_shared<Wchar_Board>(
             boardWidth,
             boardHeight,
             size,
@@ -51,7 +56,19 @@ public:
             (screenHeight - boardHeight) / 2
         );
         window = std::make_shared<ConsoleWindow>(screenHeight, screenWidth, board_class);
+#else
+        board_class = std::make_shared<Char_Board>(
+            boardWidth,
+            boardHeight,
+            size,
+            (screenWidth - boardWidth) / 2,
+            (screenHeight - boardHeight) / 2
+        );
+        window = std::make_shared<Print_Window>(screenHeight, screenWidth, board_class);
+#endif
+
     }
+
 
     // Temp display for board
     /*void displayBoard() {
@@ -353,17 +370,18 @@ public:
         }
     }*/
         std::unique_ptr<std::pair<float, float>> input_coords;
-        window->display();
+        //window->display();
+        window->clear();
         while (1) {
-
+            
+            window->display();
             while (1) {
                 input_coords = window->get_input();
                 if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
             }
-            window->display();
+            
             window->clear();
 
-            std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
             currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
         }
     }
@@ -409,7 +427,6 @@ public:
                     cout << "Invalid board size. Defaulting to 5x5.\n";
                     boardSize = 5;
                 }
-
                 // Draw board and start gameplay loop
                 GoGame game(boardSize);
                 game.play();
@@ -424,22 +441,7 @@ public:
 
     // Created by Ethan
     int main() {
-        //mainMenu();
-
-        char arr[] = {92, 124, 47, 0};
-        int i = 0;
-        while (1) {
-            for (int k = 0; k < 30; k++) {
-                for (int j = 0; j < 50; j++) {
-                    printf("%c", arr[(i+k) % 3]);
-                }
-                printf("\n");
-            }
-            std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.1));
-            i++;
-            system("cls");
-    }
-
+        mainMenu();
 
 
         return 0;

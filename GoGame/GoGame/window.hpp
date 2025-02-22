@@ -17,6 +17,10 @@
 #include <Windows.h>
 #endif
 
+#ifndef _STRING_
+#include <string>
+#endif
+
 
 //Rhett Thompson
 class Window {
@@ -44,7 +48,7 @@ class ConsoleWindow : public Window {
 		std::vector<std::vector<wchar_t>> screen;
 		std::vector<wchar_t> oneD_screen;
 
-		std::shared_ptr<Board> board;
+		std::shared_ptr<Wchar_Board> board;
 		std::vector<std::vector<wchar_t>> board_copy;
 
 		HANDLE console_handle;
@@ -69,20 +73,36 @@ class ConsoleWindow : public Window {
 };
 
 
-//I will probably make a new kind of window here that just prints to the console instead.
-	/*char arr[] = {92, 124, 47, 0};
-	int i = 0;
-	while (1) {
-		for (int k = 0; k < 30; k++) {
-			for (int j = 0; j < 50; j++) {
-				printf("%c", arr[(i+k) % 3]);
-			}
-			printf("\n");
-		}
-		std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.1));
-		i++;
-		system("cls");
-	}*/
+
+//Rhett Thompson
+class Print_Window : public Window {
+
+	private:
+
+		std::vector<std::vector<char>> screen;
+
+		std::shared_ptr<Char_Board> board;
+		std::vector<std::vector<char>> board_copy;
+
+		void place_board_on_screen();
+		void draw_row_and_col_labels();
+		void draw_turn_info();
+		std::string get_keystrokes();
+
+
+	public:
+		static constexpr size_t MAX_CHAR_LEN = 256;
+
+		Print_Window(int sHeight, int sWidth, std::shared_ptr<Board> board);
+		~Print_Window() {};
+
+		std::unique_ptr<std::pair<float, float>> get_input();
+
+		void display();
+		void clear();
+};
+
+
 
 
 
