@@ -245,7 +245,7 @@ void Print_Window::display() {
 void Print_Window::clear() {
 	board_copy = board->board;
 	std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25)); //Wait a moment before clearing the screen
-	system("cls");
+	//system("cls");
 }
 
 
@@ -268,8 +268,8 @@ std::unique_ptr<std::pair<float, float>> Print_Window::get_input() {
 		if (std::isdigit(static_cast<unsigned char>(input[i]))) col += input[i];
 		else break;
 	}
-	if (row == "p" || row == "pass") return std::make_unique<std::pair<float, float>>(-100, -100); //These represent a pass
-	if (row.size() > 1 || col.size() < 1) return std::make_unique<std::pair<float, float>>(-1, -1);
+	if ((row == "p" || row == "pass") && col.size() < 1) return std::make_unique<std::pair<float, float>>(-100, -100); //These represent a pass
+	if (row.size() > 1 || col.size() < 1) return std::make_unique<std::pair<float, float>>(-1, -1); //Invalid move
 	int true_col = std::stoi(col) - 1;
 	int true_row = static_cast<int>(row[0]) - 97;
 	return std::make_unique<std::pair<float, float>>(true_row, true_col);

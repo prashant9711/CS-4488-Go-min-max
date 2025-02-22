@@ -2,6 +2,7 @@
 #include "board.hpp"
 #endif
 
+//#include <iostream>
 
 
 //Rhett Thompson
@@ -73,10 +74,10 @@ std::vector<std::vector<wchar_t>> Wchar_Board::build_piece(wchar_t ch) {
 
 
 //Rhett Thompson
-int Wchar_Board::calc_piece_space(float space) {
+int Wchar_Board::calc_piece_space(float space) { //Keep an eye on this one same reasons as the one below
 	//Calculates the width or height of a character sprite based on the size of the board.
-	int half_space = static_cast<int>(space) >> 1;
-	return half_space - !(half_space & 0x1); //Subtract 1 if its even
+	int half_space = static_cast<int>(space+1) >> 1;
+	return half_space + !(half_space & 0x1); //Add 1 if its even
 }
 
 
@@ -130,7 +131,7 @@ Char_Board::Char_Board(int bWidth, int bHeight, int stone_amount, int x, int y) 
 {
 	init_board();
 	white_stone = build_piece('#');
-	black_stone = build_piece('.');
+	black_stone = build_piece('\\');
 }
 
 
@@ -183,10 +184,11 @@ std::vector<std::vector<char>> Char_Board::build_piece(char ch) {
 
 
 //Rhett Thompson
-int Char_Board::calc_piece_space(float space) {
+int Char_Board::calc_piece_space(float space) { //I changed this, and it might cause some problems.  We will see
 	//Calculates the width or height of a character sprite based on the size of the board.
-	int half_space = static_cast<int>(space) >> 1;
-	return half_space - !(half_space & 0x1); //Subtract 1 if its even
+	//std::cout << "Space: " << space << "\n";
+	int half_space = static_cast<int>(space+1) >> 1; //space does not include next column or row character.
+	return half_space + !(half_space & 0x1); //Add 1 if its even
 }
 
 
