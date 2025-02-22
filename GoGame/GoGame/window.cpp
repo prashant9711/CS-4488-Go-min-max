@@ -7,6 +7,10 @@
 #include "board.hpp"
 #endif
 
+#ifndef GO_UTIL
+#include "goutil.hpp"
+#endif
+
 #ifndef _MEMORY_
 #include <memory>
 #endif
@@ -245,28 +249,14 @@ void Print_Window::clear() {
 }
 
 
-//Rhett Thompson
-std::string Print_Window::get_keystrokes() {
-	std::string str_input;
-	char user_input[MAX_CHAR_LEN];
-	fgets(user_input, MAX_CHAR_LEN, stdin);
 
-	user_input[strcspn(user_input, "\n")] = 0;
-	str_input = std::string(user_input);
-
-	for (std::string::iterator it = str_input.begin(); it != str_input.end(); it++) {
-		*it = std::tolower(*it);
-	}
-
-	return str_input;
-}
 
 
 //Rhett Thompson
 std::unique_ptr<std::pair<float, float>> Print_Window::get_input() {
 
 	std::cout << "Where would you like to move: ";
-	std::string input = get_keystrokes();
+	std::string input = Go_Util::get_keyboard_input(1);
 	std::cout << "\n";
 	std::string row = "", col = "";
 	int i = 0;
@@ -278,6 +268,7 @@ std::unique_ptr<std::pair<float, float>> Print_Window::get_input() {
 		if (std::isdigit(static_cast<unsigned char>(input[i]))) col += input[i];
 		else break;
 	}
+	if (row == "p" || row == "pass") return std::make_unique<std::pair<float, float>>(-100, -100); //These represent a pass
 	if (row.size() > 1 || col.size() < 1) return std::make_unique<std::pair<float, float>>(-1, -1);
 	int true_col = std::stoi(col) - 1;
 	int true_row = static_cast<int>(row[0]) - 97;

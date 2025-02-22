@@ -17,6 +17,10 @@
 #include "board.hpp"
 #endif
 
+#ifndef GO_UTIL
+#include "goutil.hpp"
+#endif
+
 //Comment this out if you want to use the unicode board
 #define PRINT_WINDOW  //If this is defined, then Print_Window will be used
 
@@ -183,7 +187,12 @@ public:
         //if (row < 0 || row >= size || col < 0 || col >= size || board[row][col] != '.') {
             //return false; // Catch input off board
         //}
-
+        if (row == -100 && col == -100) { //I'm using these values to represent a pass
+            passCount++;
+            std::cout << "Player: " << currentPlayer << " passed\n";
+            return true;
+        }
+        passCount = 0;
         bool result = this->board_class->place_stone_on_board(row, col, currentPlayer);
         if (!result) return result;
 
@@ -370,7 +379,6 @@ public:
         }
     }*/
         std::unique_ptr<std::pair<float, float>> input_coords;
-        //window->display();
         window->clear();
         while (1) {
             
@@ -383,6 +391,13 @@ public:
             window->clear();
 
             currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
+
+            if (passCount >= 2) { //if both players pass the game ends
+                window.reset();
+                cout << "Both players passed. Game over!\n";
+                calculateScores(); //getting the scores
+                return;
+            }
         }
     }
 
@@ -390,6 +405,7 @@ public:
 };
 
     // Created by Ethan
+    //Modified by Rhett
     void mainMenu() {
         while (true) {
             // Initial game menu
@@ -398,15 +414,18 @@ public:
             cout << "2. Quit\n";
             cout << "Enter choice: ";
 
-            int choice;
-            cin >> choice;
+            int choice = 0;
 
-            if (cin.fail()) {
-                // Clear the error state and ignore invalid input
-                cin.clear();
-                //cin.ignore(numeric_limits<streamsize>::max(), '\n'); //This line is recognized as a syntax error for me(Rhett)
-                cout << "Invalid input! Please enter 1 or 2.\n";
-                continue;
+            while (1) {
+                try {
+                    choice = std::stoi(Go_Util::get_keyboard_input());
+                    if (choice == 1 || choice == 2) break;
+                    std::cout << "Please enter 1 or 2:";
+
+                }
+                catch (std::invalid_argument err) {
+                    cout << "Invalid input! Please enter 1 or 2: ";
+                }
             }
 
             if (choice == 2) {
@@ -414,27 +433,23 @@ public:
                 cout << "Exiting game. Goodbye!\n";
                 return;
             }
-            else if (choice == 1) {
-                // Start game loop
-                int boardSize;
-                cout << "Choose board size (5, 9, 13, 19): ";
-                cin >> boardSize;
+            // Start game loop
+            int boardSize;
+            std::cout << "Choose the board size (5 <= size <= 19): ";
+            while (1) {
+                try {
+                    boardSize = std::stoi(Go_Util::get_keyboard_input());
+                    if (boardSize >= 5 && boardSize <= 19) break;
+                    std::cout << "Please enter a number in between 5 and 19 (inclusive): ";
 
-                // Build board from chosen size
-                if (cin.fail() || (boardSize != 5 && boardSize != 9 && boardSize != 13 && boardSize != 19)) {
-                    cin.clear();
-                    //cin.ignore(numeric_limits<streamsize>::max(), '\n'); //This line is recognized as a syntax error for me(Rhett)
-                    cout << "Invalid board size. Defaulting to 5x5.\n";
-                    boardSize = 5;
                 }
-                // Draw board and start gameplay loop
-                GoGame game(boardSize);
-                game.play();
+                catch (std::invalid_argument err) {
+                    cout << "Invalid input! Please enter a number in between 5 and 19 (inclusive): ";
+                }
             }
-            else {
-                // Error catch for invalid input
-                cout << "Invalid choice! Please enter 1 or 2.\n";
-            }
+            // Draw board and start gameplay loop
+            GoGame game(boardSize);
+            game.play();
         }
 
     }

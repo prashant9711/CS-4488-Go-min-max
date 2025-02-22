@@ -104,10 +104,12 @@
   <ItemGroup>
     <ClInclude Include="board.hpp" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="goutil.hpp" />
     <ClInclude Include="window.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="board.cpp" />
+    <ClCompile Include="goutil.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

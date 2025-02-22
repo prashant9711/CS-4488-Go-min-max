@@ -87,11 +87,10 @@ class Print_Window : public Window {
 		void place_board_on_screen();
 		void draw_row_and_col_labels();
 		void draw_turn_info();
-		std::string get_keystrokes();
 
 
 	public:
-		static constexpr size_t MAX_CHAR_LEN = 256;
+		
 
 		Print_Window(int sHeight, int sWidth, std::shared_ptr<Board> board);
 		~Print_Window() {};
