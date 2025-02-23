@@ -395,6 +395,7 @@ public:
             while (1) {
                 input_coords = window->get_input();
                 if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
+                std::cout << "Invalid move\n";
             }
             
             window->clear();

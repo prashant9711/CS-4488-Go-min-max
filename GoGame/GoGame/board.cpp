@@ -85,7 +85,7 @@ int Wchar_Board::calc_piece_space(float space) { //Keep an eye on this one same 
 //Rhett Thompson
 bool Wchar_Board::place_stone_on_board(int row, int col, Space_Types player){ //This uses 0 based indexing
 	//Places a stone
-	if (row > stoneField_size || col > stoneField_size || row < 0 || col < 0) return false;
+	if (row >= stoneField_size || col >= stoneField_size || row < 0 || col < 0) return false;
 	if (stones[row][col] != Space_Types::EMPTY) return false;
 
 	stones[row][col] = player;
