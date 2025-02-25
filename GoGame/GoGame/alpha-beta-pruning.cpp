@@ -114,6 +114,31 @@ int countLiberties(int row, int col, int player, std::shared_ptr<Node> node, set
     return liberties;
 }
 
+int calculateHeatmapValue(int x, int y, int boardSize) {
+    // Check if the move is on the edge
+    if (x == 0 || x == boardSize - 1 || y == 0 || y == boardSize - 1) {
+        return 10; // Edge (lowest value)
+    }
+
+    // Distance from the edges
+    int distX = std::min(x, boardSize - 1 - x);
+    int distY = std::min(y, boardSize - 1 - y);
+    int minDist = std::min(distX, distY);
+
+    // Assign values based on distance from the edge
+    if (minDist == 1) {
+        return 50; // One line away from edge
+    }
+    else if (minDist == 2) {
+        return 100; // Two lines away from edge (optimal area)
+    }
+    else if (minDist >= 3) {
+        return 60; // Center (semi-good)
+    }
+
+    return 10; // Default (should not happen)
+}
+
 
 // Added by Andrija Sevaljevic
 // This function calcaultes the strength of a move
@@ -166,6 +191,7 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
         // Early game: prioritize liberties
         liberties *= 20; // Increased weight on liberties
         groupStrength *= 5; // Lower weight on group strength
+        score += calculateHeatmapValue(node->moveX, node->moveY, node->boardSize);
     }
     else if (goodStones + badStones < node->boardSize * node->boardSize * 2 / 3) {
         // Mid game: balance between liberties and group strength
@@ -191,7 +217,6 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     node->stoneValue = (goodStones - badStones) * 100;
 
     score = score * currentStone;
-
     node->value = score;
 
     return score;
