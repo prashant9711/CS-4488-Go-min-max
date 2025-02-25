@@ -32,7 +32,7 @@ bool onBoard(int row, int col, int size) {
 // recursively checking for suicide moves, ko
 // Modified for algorithm by Andrija Sevaljevic
 // Created by Prashant
-bool moveCheck(int row, int col, int player, Node* node, set<pair<int, int>>& visited) {
+bool moveCheck(int row, int col, int player, std::shared_ptr<Node> node, set<pair<int, int>>& visited) {
     if (!onBoard(row, col, node->boardSize) || visited.count({ row, col }) || node->board[row][col] != player) {
         return false; // Invalid move
     }
@@ -53,7 +53,7 @@ bool moveCheck(int row, int col, int player, Node* node, set<pair<int, int>>& vi
 // remove the captured stones
 // Modified to match data structure by Andrija Sevaljevic
 // Created by Prashant
-int removeStones(int row, int col, int player, Node* node) {
+int removeStones(int row, int col, int player, std::shared_ptr<Node> node) {
     node->board[row][col] = 0;
     for (const auto& neighbor : getNeighbors(row, col)) {
         int r = neighbor.first;
@@ -68,7 +68,7 @@ int removeStones(int row, int col, int player, Node* node) {
 // Created by Prashant
 // Modified to match data structure by Andrija Sevaljevic
 // check for captures and remove
-int checkCaptures(int opponent, Node* node) {
+int checkCaptures(int opponent, std::shared_ptr<Node> node) {
     int captures = 0;
     int row = node->moveX;
     int col = node->moveY;
@@ -91,7 +91,7 @@ int checkCaptures(int opponent, Node* node) {
 }
 
 // Helper function to count liberties of a given stone
-int countLiberties(int row, int col, int player, Node* node, set<pair<int, int>>& visited) {
+int countLiberties(int row, int col, int player, std::shared_ptr<Node> node, set<pair<int, int>>& visited) {
     if (!onBoard(row, col, node->boardSize) || visited.count({ row, col }) || node->board[row][col] != player) {
         return 0;
     }
@@ -117,7 +117,7 @@ int countLiberties(int row, int col, int player, Node* node, set<pair<int, int>>
 
 // Added by Andrija Sevaljevic
 // This function calcaultes the strength of a move
-int evaluateBoard(int currentStone, Node* node) {
+int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int score = 0;
     int currentTurnStone = currentStone;
     int goodStones = 0;
@@ -199,7 +199,7 @@ int evaluateBoard(int currentStone, Node* node) {
 
 // Added by Andrija Sevaljevic
 // This function cycles through all of our possible moves
-int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer, steady_clock::time_point startTime) {
+int alphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool maximizingPlayer, steady_clock::time_point startTime) {
 
     auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
     if (elapsed >= 10) {
@@ -223,7 +223,7 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
 
     if (maximizingPlayer && depth != 0) {
         int maxEval = std::numeric_limits<int>::min();
-        for (Node* child : node->children) {
+        for (std::shared_ptr<Node> child : node->children) {
 
             auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
             if (elapsed >= 10) {
@@ -239,7 +239,7 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
     }
     else {
         int minEval = std::numeric_limits<int>::max();
-        for (Node* child : node->children) {
+        for (std::shared_ptr<Node> child : node->children) {
 
             auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
             if (elapsed >= 10) {
@@ -257,7 +257,7 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
 
 // Added by Andrija Sevaljevic
 // This function generates a tree of all possible moves
-void generateChildren(Node* node, bool isMaximizing) {
+void generateChildren(std::shared_ptr<Node> node, bool isMaximizing) {
     int playerValue = isMaximizing ? 1 : -1;  // Assign '1' to Player 1, '-1' to Player 2
 
     for (int x = 0; x < node->boardSize; x++) {
@@ -265,7 +265,7 @@ void generateChildren(Node* node, bool isMaximizing) {
             if (node->board[x][y] == 0) { // Empty spot
                 std::vector<std::vector<int>> newBoard = node->board;
                 newBoard[x][y] = playerValue;
-                node->children.push_back(new Node(newBoard, node->boardSize, x, y, 0, node));
+                node->children.push_back(std::make_shared<Node>(newBoard, node->boardSize, x, y, 0, node));
             }
         }
     }
@@ -273,9 +273,9 @@ void generateChildren(Node* node, bool isMaximizing) {
 
 // Added by Andrija Sevaljevic
 // This function generates a tree of N best possible moves
-void generateNChildren(Node* node, bool isMaximizing) {
+void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
     int playerValue = isMaximizing ? 1 : -1;  // Assign '1' to Player 1, '-1' to Player 2
-    vector<pair<int, Node*>> evaluatedChildren; // Pair of evaluation score and Node pointer
+    vector<pair<int, std::shared_ptr<Node>>> evaluatedChildren; // Pair of evaluation score and Node pointer
 
     // Generate all possible moves and evaluate them
     for (int x = 0; x < node->boardSize; x++) {
@@ -286,7 +286,7 @@ void generateNChildren(Node* node, bool isMaximizing) {
 
 
                 // Create the new node and add it to the list with its evaluation score
-                Node* childNode = new Node(newBoard, node->boardSize, x, y, 0, node);
+                std::shared_ptr<Node> childNode = std::make_shared<Node>(newBoard, node->boardSize, x, y, 0, node);
                 int temp = evaluateBoard(isMaximizing, childNode);
                 evaluatedChildren.push_back({ childNode->value, childNode });
             }
@@ -325,5 +325,14 @@ void generateNChildren(Node* node, bool isMaximizing) {
             node->children.push_back(evaluatedChildren[i].second);
         }
     }
+}
+
+
+void freeChildren(std::vector<std::shared_ptr<Node>>& children){
+    for(int i = 0; i < children.size(); i++){
+        freeChildren( (children[i])->children);
+        //(children[i]).reset();
+    }
+    children.clear();
 }
 

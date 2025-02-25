@@ -15,9 +15,9 @@
 
 using namespace std::chrono;
 
-#ifndef GO_WINDOW
-#include "window.hpp"
-#endif
+// #ifndef GO_WINDOW
+// #include "window.hpp"
+// #endif
 
 #ifndef GO_BOARD
 #include "board.hpp"
@@ -108,7 +108,7 @@ public:
     }
     
     // created by Andrija
-    void printSummary(Node* node) {
+    void printSummary(std::shared_ptr<Node> node) {
         cout << "Capture value: " << node->captureValue << "\n";
         cout << "Liberty value: " << node->libertyValue << "\n";
         cout << "Group value: " << node->groupValue << "\n";
@@ -308,21 +308,21 @@ public:
         }
 
         // Create root node
-        Node* root = new Node(intBoard, size);
+        std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
 
         // Generate possible moves
         generateNChildren(root, (currentPlayer == 'W'));
 
         if (root->children.empty()) {
-            delete root;  // No possible moves
+            root.reset();  // No possible moves
             return false;
         }
 
         // Run alpha-beta pruning
         int bestValue = -10000;
-        Node* bestMove = nullptr;
+        std::shared_ptr<Node> bestMove = nullptr;
 
-        for (Node* child : root->children) {
+        for (std::shared_ptr<Node> child : root->children) {
             auto startTime = steady_clock::now();
             int eval = alphaBeta(child, 3, -10000, 10000, false, startTime);
             if (eval > bestValue) {
@@ -334,7 +334,7 @@ public:
         if (bestMove) {
             int row = bestMove->moveX;
             int col = bestMove->moveY;
-            board[row][col] = currentPlayer;
+            board[row][col] = currentPlayer;root.reset();
 
             // Check captures
             checkCaptures(row, col);
@@ -345,14 +345,14 @@ public:
             set<pair<int, int>> visited;
             if (!moveCheck(row, col, currentPlayer, visited)) {
                 board[row][col] = '.';  // Undo move
-                delete root;
+                root.reset();
                 return false;
             }
 
             currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Switch turns
         }
 
-        delete root;  // Free memory
+        root.reset();  // Free memory
         return true;
     }
 
@@ -379,21 +379,21 @@ public:
         }
 
         // Create root node
-        Node* root = new Node(intBoard, size);
+        std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
 
         // Generate possible moves
         generateNChildren(root, (currentPlayer == 'B'));
 
         if (root->children.empty()) {
-            delete root;  // No possible moves
+            root.reset();  // No possible moves
             return false;
         }
 
         // Run alpha-beta pruning
         int bestValue = -10000;
-        Node* bestMove = nullptr;
+        std::shared_ptr<Node> bestMove = nullptr;
 
-        for (Node* child : root->children) {
+        for (std::shared_ptr<Node> child : root->children) {
             auto startTime = steady_clock::now();
             int eval = alphaBeta(child, 3, -10000, 10000, false, startTime);
             if (eval > bestValue) {
@@ -416,14 +416,14 @@ public:
             set<pair<int, int>> visited;
             if (!moveCheck(row, col, currentPlayer, visited)) {
                 board[row][col] = '.';  // Undo move
-                delete root;
+                root.reset();
                 return false;
             }
 
             currentPlayer = (currentPlayer == 'B') ? 'W' : 'B';  // Switch turns
         }
 
-        delete root;  // Free memory
+        root.reset();  // Free memory
         return true;
     }
 
@@ -546,33 +546,33 @@ int main() {
     mainMenu();
 
     
-    int screenWidth = 120;
-    int screenHeight = 60;
+    // int screenWidth = 120;
+    // int screenHeight = 60;
     
-    int stoneField_size = 19;
-    int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
-    int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
-    std::shared_ptr<Board> board = std::make_shared<Board>(
-        boardWidth,
-        boardHeight,
-        stoneField_size,
-        (screenWidth - boardWidth) / 2,
-        (screenHeight - boardHeight) / 2
-    );
-    ConsoleWindow window(screenHeight, screenWidth, board);
+    // int stoneField_size = 19;
+    // int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
+    // int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
+    // std::shared_ptr<Board> board = std::make_shared<Board>(
+    //     boardWidth,
+    //     boardHeight,
+    //     stoneField_size,
+    //     (screenWidth - boardWidth) / 2,
+    //     (screenHeight - boardHeight) / 2
+    // );
+    // ConsoleWindow window(screenHeight, screenWidth, board);
 
-    Space_Types turn = WHITE;
-    window.display();
-    while(1){
+    // Space_Types turn = WHITE;
+    // window.display();
+    // while(1){
 
-        while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
-                                                        //Problem is, it depends on mouse input.  I will figure this out later.
-        window.display();
-        window.clear();
+    //     while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
+    //                                                     //Problem is, it depends on mouse input.  I will figure this out later.
+    //     window.display();
+    //     window.clear();
         
-        std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
-        turn = static_cast<Space_Types>(!static_cast<bool>(turn));
-    }
+    //     std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
+    //     turn = static_cast<Space_Types>(!static_cast<bool>(turn));
+    // }
 
     return 0;
 }
