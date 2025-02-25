@@ -106,6 +106,17 @@ public:
             }
         }
     }
+    
+    // created by Andrija
+    void printSummary(Node* node) {
+        cout << "Capture value: " << node->captureValue << "\n";
+        cout << "Liberty value: " << node->libertyValue << "\n";
+        cout << "Group value: " << node->groupValue << "\n";
+        cout << "Weak stone value: " << node->weakStoneValue << "\n";
+        cout << "Stone value: " << node->stoneValue << "\n";
+        cout << "Total value: " << node->value << "\n";
+    }
+
     // Created by Prashant
     // check for captures and remove
     void checkCaptures(int row, int col) {
@@ -308,12 +319,12 @@ public:
         }
 
         // Run alpha-beta pruning
-        int bestValue = -1000;
+        int bestValue = -10000;
         Node* bestMove = nullptr;
 
         for (Node* child : root->children) {
             auto startTime = steady_clock::now();
-            int eval = alphaBeta(child, 4, -1000, 1000, false, startTime);
+            int eval = alphaBeta(child, 3, -10000, 10000, false, startTime);
             if (eval > bestValue) {
                 bestValue = eval;
                 bestMove = child;
@@ -327,6 +338,8 @@ public:
 
             // Check captures
             checkCaptures(row, col);
+
+            printSummary(bestMove);
 
             // Prevent illegal moves
             set<pair<int, int>> visited;
@@ -377,12 +390,12 @@ public:
         }
 
         // Run alpha-beta pruning
-        int bestValue = -1000;
+        int bestValue = -10000;
         Node* bestMove = nullptr;
 
         for (Node* child : root->children) {
             auto startTime = steady_clock::now();
-            int eval = alphaBeta(child, 4, -1000, 1000, false, startTime);
+            int eval = alphaBeta(child, 3, -10000, 10000, false, startTime);
             if (eval > bestValue) {
                 bestValue = eval;
                 bestMove = child;
@@ -396,6 +409,8 @@ public:
 
             // Check captures
             checkCaptures(row, col);
+
+            printSummary(bestMove);
 
             // Prevent illegal moves
             set<pair<int, int>> visited;

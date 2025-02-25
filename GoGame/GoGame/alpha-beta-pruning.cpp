@@ -68,8 +68,7 @@ int removeStones(int row, int col, int player, Node* node) {
 // Created by Prashant
 // Modified to match data structure by Andrija Sevaljevic
 // check for captures and remove
-int checkCaptures(bool currentPlayer, Node* node) {
-    int opponent = (currentPlayer) ? 1 : -1;
+int checkCaptures(int opponent, Node* node) {
     int captures = 0;
     int row = node->moveX;
     int col = node->moveY;
@@ -87,7 +86,7 @@ int checkCaptures(bool currentPlayer, Node* node) {
             }
         }
     }
-    captures = (currentPlayer) ? captures : captures * -1;
+   
     return captures;
 }
 
@@ -118,16 +117,21 @@ int countLiberties(int row, int col, int player, Node* node, set<pair<int, int>>
 
 // Added by Andrija Sevaljevic
 // This function calcaultes the strength of a move
-int evaluateBoard(bool currentTurn, Node* node) {
+int evaluateBoard(int currentStone, Node* node) {
     int score = 0;
-    int currentTurnStone = currentTurn ? -1 : 1;
+    int currentTurnStone = currentStone;
+    int goodStones = 0;
+    int badStones = 0;
+    set<pair<int, int>> visited;
 
     // Capture score
-    int capturedStones = checkCaptures(currentTurn, node);
-    score += capturedStones * (20 + (capturedStones * 5));
+    int capturedStones = checkCaptures(currentTurnStone * -1, node);
+    score += capturedStones * (100 + (capturedStones * 5));
+    node->captureValue = score;
     if (score == 0) {
-        capturedStones = checkCaptures(!currentTurn, node);
-        score += capturedStones * (20 + (capturedStones * 5));
+        capturedStones = checkCaptures(currentTurnStone, node);
+        score -= capturedStones * (20 + (capturedStones * 5));
+        node->captureValue -= score;
     }
 
     // Evaluate liberties and weaknesses
@@ -136,27 +140,59 @@ int evaluateBoard(bool currentTurn, Node* node) {
     int groupStrength = 0;
     int totalLiberties = 0;
 
-    for (int x = 0; x < node->boardSize; ++x) {
-        for (int y = 0; y < node->boardSize; ++y) {
+    for (int x = 0; x < node->boardSize; x++) {
+        for (int y = 0; y < node->boardSize; y++) {
             if (node->board[x][y] == currentTurnStone) {
-                set<pair<int, int>> visited;
-                int libertiesForStone = countLiberties(x, y, currentTurnStone, node, visited);
-                liberties += libertiesForStone;
-                totalLiberties += libertiesForStone;
+                goodStones++;
+                if (!visited.count({ x, y })) {
+                    int libertiesForStone = countLiberties(x, y, currentTurnStone, node, visited);
+                    liberties += libertiesForStone;
+                    totalLiberties += libertiesForStone;
 
-                if (libertiesForStone <= 2) {
-                    weakStones++;
+                    if (libertiesForStone <= 2) {
+                        weakStones++;
+                    }
                 }
+            }
+            else if (node->board[x][y] == currentTurnStone * -1) {
+                badStones++;
             }
         }
     }
 
-    score -= weakStones * 5; // Still penalizing weak stones
-    score += liberties * 10;  // Increased weight on liberties
     groupStrength = totalLiberties / (node->boardSize);
-    score += groupStrength * 3;
 
-    if (currentTurn) score = score * -1;
+    if (goodStones + badStones < node->boardSize * node->boardSize / 4) {
+        // Early game: prioritize liberties
+        liberties *= 20; // Increased weight on liberties
+        groupStrength *= 5; // Lower weight on group strength
+    }
+    else if (goodStones + badStones < node->boardSize * node->boardSize * 2 / 3) {
+        // Mid game: balance between liberties and group strength
+        liberties *= 8;
+        groupStrength *= 10;
+    }
+    else {
+        // Late game: prioritize group strength
+        liberties *= 5;
+        groupStrength *= 20; // Increased weight on group strength
+    }
+
+    score -= weakStones * 15; // Still penalizing weak stones
+    node->weakStoneValue = weakStones * -15;
+
+    score += liberties / (goodStones + badStones);  // Increased weight on liberties
+    node->libertyValue = liberties / (goodStones + badStones);
+
+    score += groupStrength;
+    node->groupValue = groupStrength;
+
+    score += (goodStones - badStones) * 100;
+    node->stoneValue = (goodStones - badStones) * 100;
+
+    score = score * currentStone;
+
+    node->value = score;
 
     return score;
 }
@@ -167,14 +203,11 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
 
     auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
     if (elapsed >= 10) {
-        return evaluateBoard(maximizingPlayer, node); // Return evaluation if time is up
+        return node->value;
     }
 
-    // Evaluate at every step
-    int currentEval = evaluateBoard(maximizingPlayer, node);
-
     if (depth == 0) {
-        return currentEval;
+        return node->value;
     }
 
     // Ensure children are generated for this node if not already done
@@ -183,14 +216,20 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
     }
 
     if (node->children.empty()) {
-        return currentEval; // If no children, return evaluation
+        return node->value; // If no children, return evaluation
     }
 
-    int dynamicDepth = (node->children.size() > 20) ? depth - 1 : depth - 2;
+    int dynamicDepth = (node->children.size() > 20) ? depth - 2 : depth - 1;
 
-    if (maximizingPlayer) {
+    if (maximizingPlayer && depth != 0) {
         int maxEval = std::numeric_limits<int>::min();
         for (Node* child : node->children) {
+
+            auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
+            if (elapsed >= 10) {
+                return node->value;
+            }
+
             int eval = alphaBeta(child, dynamicDepth, alpha, beta, false, startTime);
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
@@ -201,6 +240,12 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
     else {
         int minEval = std::numeric_limits<int>::max();
         for (Node* child : node->children) {
+
+            auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
+            if (elapsed >= 10) {
+                return node->value;
+            }
+
             int eval = alphaBeta(child, dynamicDepth, alpha, beta, true, startTime);
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
@@ -215,8 +260,8 @@ int alphaBeta(Node* node, int depth, int alpha, int beta, bool maximizingPlayer,
 void generateChildren(Node* node, bool isMaximizing) {
     int playerValue = isMaximizing ? 1 : -1;  // Assign '1' to Player 1, '-1' to Player 2
 
-    for (int x = 0; x < node->boardSize; ++x) {
-        for (int y = 0; y < node->boardSize; ++y) {
+    for (int x = 0; x < node->boardSize; x++) {
+        for (int y = 0; y < node->boardSize; y++) {
             if (node->board[x][y] == 0) { // Empty spot
                 std::vector<std::vector<int>> newBoard = node->board;
                 newBoard[x][y] = playerValue;
@@ -233,8 +278,8 @@ void generateNChildren(Node* node, bool isMaximizing) {
     vector<pair<int, Node*>> evaluatedChildren; // Pair of evaluation score and Node pointer
 
     // Generate all possible moves and evaluate them
-    for (int x = 0; x < node->boardSize; ++x) {
-        for (int y = 0; y < node->boardSize; ++y) {
+    for (int x = 0; x < node->boardSize; x++) {
+        for (int y = 0; y < node->boardSize; y++) {
             if (node->board[x][y] == 0) { // Empty spot
                 std::vector<std::vector<int>> newBoard = node->board;
                 newBoard[x][y] = playerValue;
@@ -242,17 +287,26 @@ void generateNChildren(Node* node, bool isMaximizing) {
 
                 // Create the new node and add it to the list with its evaluation score
                 Node* childNode = new Node(newBoard, node->boardSize, x, y, 0, node);
-                childNode->value = evaluateBoard(isMaximizing, childNode);
+                int temp = evaluateBoard(isMaximizing, childNode);
                 evaluatedChildren.push_back({ childNode->value, childNode });
             }
         }
     }
 
-    // Sort children based on the evaluation score (highest first)
-    sort(evaluatedChildren.begin(), evaluatedChildren.end(),
-        [](const auto& a, const auto& b) {
-            return a.first > b.first;
-        });
+    if (isMaximizing) {
+        // Sort children based on the evaluation score (highest first)
+        sort(evaluatedChildren.begin(), evaluatedChildren.end(),
+            [](const auto& a, const auto& b) {
+                return a.first > b.first;
+            });
+    }
+    else {
+        // Sort children based on the evaluation score (lowest first)
+        sort(evaluatedChildren.begin(), evaluatedChildren.end(),
+            [](const auto& a, const auto& b) {
+                return a.first < b.first;
+            });
+    }
 
     // Get the total number of generated moves
     int moveCount = evaluatedChildren.size();
@@ -260,13 +314,13 @@ void generateNChildren(Node* node, bool isMaximizing) {
     int midCount = min(5, max(0, moveCount - 5)); // Middle 5 moves
 
     // Add top 5 moves
-    for (int i = 0; i < topCount; ++i) {
+    for (int i = 0; i < topCount; i++) {
         node->children.push_back(evaluatedChildren[i].second);
     }
 
     // Add middle 5 moves (starting after the first 5)
     int midStartIndex = moveCount / 2;
-    for (int i = midStartIndex; i < midStartIndex + midCount; ++i) {
+    for (int i = midStartIndex; i < midStartIndex + midCount; i++) {
         if (i < moveCount) {
             node->children.push_back(evaluatedChildren[i].second);
         }

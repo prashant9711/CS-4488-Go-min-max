@@ -23,7 +23,7 @@ int evaluateBoard(const std::vector<std::vector<int>>& board);
 // Creating node structure for algorithm
 struct Node {
     std::vector<std::vector<int>> board;
-    int moveX, moveY, value, boardSize;
+    int moveX, moveY, value, boardSize, captureValue, libertyValue, weakStoneValue, groupValue, stoneValue;
     Node* parent;
     std::vector<Node*> children;
 
