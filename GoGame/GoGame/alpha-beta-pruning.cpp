@@ -328,6 +328,7 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
 }
 
 
+//Rhett Thompson
 void freeChildren(std::vector<std::shared_ptr<Node>>& children){
     for(int i = 0; i < children.size(); i++){
         freeChildren( (children[i])->children);
