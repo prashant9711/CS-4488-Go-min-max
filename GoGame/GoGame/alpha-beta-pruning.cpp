@@ -139,6 +139,24 @@ int calculateHeatmapValue(int x, int y, int boardSize) {
     return 10; // Default (should not happen)
 }
 
+int calculateConnectionBonus(int x, int y, int boardSize, const std::vector<std::vector<int>>& board, int currentPlayer) {
+    int connectionBonus = 0;
+
+    // Check all 8 neighboring cells
+    for (int dx = -1; dx <= 1; ++dx) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            if (dx == 0 && dy == 0) continue; // Skip the current cell
+            int nx = x + dx;
+            int ny = y + dy;
+            if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && board[nx][ny] == currentPlayer) {
+                connectionBonus += 20; // Add bonus for each connected friendly stone
+            }
+        }
+    }
+
+    return connectionBonus;
+}
+
 
 // Added by Andrija Sevaljevic
 // This function calcaultes the strength of a move
@@ -164,6 +182,7 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int weakStones = 0;
     int groupStrength = 0;
     int totalLiberties = 0;
+    int connectionBonus = calculateConnectionBonus(node->moveX, node->moveY, node->boardSize, node->board, currentStone);
 
     for (int x = 0; x < node->boardSize; x++) {
         for (int y = 0; y < node->boardSize; y++) {
@@ -197,11 +216,13 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
         // Mid game: balance between liberties and group strength
         liberties *= 8;
         groupStrength *= 10;
+        if (connectionBonus == 0) score -= 20;
     }
     else {
         // Late game: prioritize group strength
         liberties *= 5;
         groupStrength *= 20; // Increased weight on group strength
+        if (connectionBonus == 0) score -= 50;
     }
 
     score -= weakStones * 15; // Still penalizing weak stones
@@ -218,6 +239,9 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
 
     score = score * currentStone;
     node->value = score;
+
+    if ((goodStones + badStones) * 2 < node->boardSize * node->boardSize) connectionBonus *= ((goodStones + badStones) * 2 < node->boardSize * node->boardSize);
+    score += connectionBonus;
 
     return score;
 }
