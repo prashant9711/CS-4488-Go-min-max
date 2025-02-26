@@ -240,7 +240,7 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     score = score * currentStone;
     node->value = score;
 
-    if ((goodStones + badStones) * 2 < node->boardSize * node->boardSize) connectionBonus *= ((goodStones + badStones) * 2 < node->boardSize * node->boardSize);
+    if ((goodStones + badStones) * 2 < node->boardSize * node->boardSize) connectionBonus *= (((goodStones + badStones) * 2 / node->boardSize * node->boardSize) + 0.5);
     score += connectionBonus;
 
     return score;
