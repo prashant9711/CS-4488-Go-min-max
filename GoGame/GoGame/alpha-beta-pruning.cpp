@@ -149,7 +149,7 @@ int calculateConnectionBonus(int x, int y, int boardSize, const std::vector<std:
             int nx = x + dx;
             int ny = y + dy;
             if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && board[nx][ny] == currentPlayer) {
-                connectionBonus += 20; // Add bonus for each connected friendly stone
+                connectionBonus += 40; // Add bonus for each connected friendly stone
             }
         }
     }
@@ -240,7 +240,6 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     score = score * currentStone;
     node->value = score;
 
-    if ((goodStones + badStones) * 2 < node->boardSize * node->boardSize) connectionBonus *= (((goodStones + badStones) * 2 / node->boardSize * node->boardSize) + 0.5);
     score += connectionBonus;
 
     return score;
