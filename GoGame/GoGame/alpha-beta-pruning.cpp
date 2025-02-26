@@ -127,13 +127,13 @@ int calculateHeatmapValue(int x, int y, int boardSize) {
 
     // Assign values based on distance from the edge
     if (minDist == 1) {
-        return 15; // One line away from edge
+        return 25; // One line away from edge
     }
     else if (minDist == 2 || minDist == 3) {
-        return 30; // Two lines away from edge (optimal area)
+        return 40; // Two lines away from edge (optimal area)
     }
     else if (minDist > 3) {
-        return 20; // Center (semi-good)
+        return 30; // Center (semi-good)
     }
 
     return 10; // Default (should not happen)
@@ -216,13 +216,13 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
         // Mid game: balance between liberties and group strength
         liberties *= 8;
         groupStrength *= 10;
-        if (connectionBonus == 0) score -= 20;
+        if (connectionBonus == 0) score -= 10;
     }
     else {
         // Late game: prioritize group strength
         liberties *= 5;
         groupStrength *= 20; // Increased weight on group strength
-        if (connectionBonus == 0) score -= 50;
+        if (connectionBonus == 0) score -= 25;
     }
 
     score -= weakStones * 15; // Still penalizing weak stones
@@ -237,10 +237,12 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     score += (goodStones - badStones) * 100;
     node->stoneValue = (goodStones - badStones) * 100;
 
+    score += connectionBonus;
+
     score = score * currentStone;
     node->value = score;
 
-    score += connectionBonus;
+    
 
     return score;
 }
