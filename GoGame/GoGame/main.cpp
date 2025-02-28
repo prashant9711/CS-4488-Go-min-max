@@ -314,7 +314,7 @@ public:
         generateNChildren(root, (currentPlayer == 'W'));
 
         if (root->children.empty()) {
-            root.reset();  // No possible moves
+             // No possible moves
             return false;
         }
 
@@ -334,7 +334,7 @@ public:
         if (bestMove) {
             int row = bestMove->moveX;
             int col = bestMove->moveY;
-            board[row][col] = currentPlayer;root.reset();
+            board[row][col] = currentPlayer;
 
             // Check captures
             checkCaptures(row, col);
@@ -345,14 +345,17 @@ public:
             set<pair<int, int>> visited;
             if (!moveCheck(row, col, currentPlayer, visited)) {
                 board[row][col] = '.';  // Undo move
-                root.reset();
                 return false;
             }
 
             currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Switch turns
         }
 
-        root.reset();  // Free memory
+
+        freeChildren(root->children);  // Free memory
+        
+        // std::cout << "root shared count: " << root.use_count() << "\n";
+        // std::cout << "root children count: " << root->children.size() << "\n";
         return true;
     }
 
@@ -385,7 +388,7 @@ public:
         generateNChildren(root, (currentPlayer == 'B'));
 
         if (root->children.empty()) {
-            root.reset();  // No possible moves
+          // No possible moves
             return false;
         }
 
@@ -416,14 +419,14 @@ public:
             set<pair<int, int>> visited;
             if (!moveCheck(row, col, currentPlayer, visited)) {
                 board[row][col] = '.';  // Undo move
-                root.reset();
                 return false;
             }
 
             currentPlayer = (currentPlayer == 'B') ? 'W' : 'B';  // Switch turns
         }
 
-        root.reset();  // Free memory
+
+        freeChildren(root->children);  // Free memory
         return true;
     }
 

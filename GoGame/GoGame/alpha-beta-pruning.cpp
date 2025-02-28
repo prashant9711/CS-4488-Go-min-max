@@ -375,14 +375,19 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
             node->children.push_back(evaluatedChildren[i].second);
         }
     }
+
+    for(auto& element: evaluatedChildren){
+        freeChildren(element.second->children);
+    }
 }
 
 
 //Rhett Thompson
 void freeChildren(std::vector<std::shared_ptr<Node>>& children){
     for(int i = 0; i < children.size(); i++){
-        freeChildren( (children[i])->children);
-        //(children[i]).reset();
+        if(children[i] != nullptr){
+            freeChildren( (children[i])->children);
+        }
     }
     children.clear();
 }
