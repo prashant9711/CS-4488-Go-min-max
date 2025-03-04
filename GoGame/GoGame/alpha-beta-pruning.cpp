@@ -181,7 +181,7 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     node->captureValue = score;
     if (score == 0) {
         capturedStones = checkCaptures(currentTurnStone, node);
-        score -= capturedStones * (20 + (capturedStones * 5));
+        score -= capturedStones * (100 + (capturedStones * 5));
         node->captureValue -= score;
     }
 
@@ -190,12 +190,22 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int weakStones = 0;
     int groupStrength = 0;
     int totalLiberties = 0;
+    int topLeftInfluence = 0;
+    int topRightInfluence = 0;
+    int bottomLeftInfluence = 0;
+    int bottomRightInfluence = 0;
     int connectionBonus = calculateConnectionBonus(node->moveX, node->moveY, node->boardSize, node->board, currentStone);
 
     for (int x = 0; x < node->boardSize; x++) {
         for (int y = 0; y < node->boardSize; y++) {
             if (node->board[x][y] == currentTurnStone) {
                 goodStones++;
+
+                if (x <= node->boardSize / 2 && y <= node->boardSize / 2) topLeftInfluence++;
+                else if (x >= node->boardSize / 2 && y >= node->boardSize / 2) bottomRightInfluence++;
+                else if (x >= node->boardSize / 2 && y <= node->boardSize / 2) topRightInfluence++;
+                else bottomLeftInfluence++;
+
                 if (!visited.count({ x, y })) {
                     int libertiesForStone = countLiberties(x, y, currentTurnStone, node, visited);
                     liberties += libertiesForStone;
@@ -238,8 +248,8 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
         if (connectionBonus == 0) score -= 25;
     }
 
-    score -= weakStones * 15; // Still penalizing weak stones
-    node->weakStoneValue = weakStones * -15;
+    score -= weakStones * 25; // Still penalizing weak stones
+    node->weakStoneValue = weakStones * -25;
 
     score += liberties / (goodStones + badStones + 1);  // Increased weight on liberties
     node->libertyValue = liberties / (goodStones + badStones + 1);
@@ -249,6 +259,16 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
 
     score += (goodStones - badStones) * 100;
     node->stoneValue = (goodStones - badStones) * 100;
+
+    int minInfluence = std::min({ topLeftInfluence, topRightInfluence, bottomLeftInfluence, bottomRightInfluence });
+    int maxInfluence = std::max({ topLeftInfluence, topRightInfluence, bottomLeftInfluence, bottomRightInfluence });
+
+    // Penalize if one quadrant is too dominant
+    if (maxInfluence - minInfluence > 4) {
+        score -= (maxInfluence - minInfluence) * 20; // Penalize imbalance
+    }
+
+    score += topLeftInfluence + topRightInfluence + bottomLeftInfluence + bottomRightInfluence;
 
     score = score * currentStone;
     node->value = score;
