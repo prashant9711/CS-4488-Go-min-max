@@ -10,6 +10,7 @@
 #include <set>
 #include <vector>
 #include <unordered_set>
+#include <cstdlib>
 
 using namespace std;
 using namespace std::chrono;
@@ -141,6 +142,7 @@ int calculateHeatmapValue(int x, int y, int boardSize) {
 
 int calculateConnectionBonus(int x, int y, int boardSize, const std::vector<std::vector<int>>& board, int currentPlayer) {
     int connectionBonus = 0;
+    bool noteye = false;
 
     // Check all 8 neighboring cells
     for (int dx = -1; dx <= 1; ++dx) {
@@ -148,12 +150,17 @@ int calculateConnectionBonus(int x, int y, int boardSize, const std::vector<std:
             if (dx == 0 && dy == 0) continue; // Skip the current cell
             int nx = x + dx;
             int ny = y + dy;
-            if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize && board[nx][ny] == currentPlayer) {
-                connectionBonus += 40; // Add bonus for each connected friendly stone
+            if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize) {
+                if (board[nx][ny] == currentPlayer) {
+                    if (nx || ny == 0) connectionBonus + 15;
+                    connectionBonus += 15;
+                }// Add bonus for each connected friendly stone
+                else noteye = true;
             }
         }
     }
 
+    if (!noteye) connectionBonus -= 500;
     return connectionBonus;
 }
 
@@ -166,6 +173,7 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int goodStones = 0;
     int badStones = 0;
     set<pair<int, int>> visited;
+    std::srand(std::time(0));
 
     // Capture score
     int capturedStones = checkCaptures(currentTurnStone * -1, node);
@@ -196,6 +204,8 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
                     if (libertiesForStone <= 2) {
                         weakStones++;
                     }
+
+                    if (libertiesForStone == 1) score -= 300;
                 }
             }
             else if (node->board[x][y] == currentTurnStone * -1) {
@@ -210,34 +220,35 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
         // Early game: prioritize liberties
         liberties *= 20; // Increased weight on liberties
         groupStrength *= 5; // Lower weight on group strength
+        if(std::rand() % 100 < 0.3) score += connectionBonus * 0.5;
         if((goodStones + badStones) < 13 && (goodStones + badStones) < node->boardSize) score += calculateHeatmapValue(node->moveX, node->moveY, node->boardSize);
     }
     else if (goodStones + badStones < node->boardSize * node->boardSize * 2 / 3) {
         // Mid game: balance between liberties and group strength
         liberties *= 8;
         groupStrength *= 10;
+        if (std::rand() % 100 < 0.75) score += connectionBonus;
         if (connectionBonus == 0) score -= 10;
     }
     else {
         // Late game: prioritize group strength
         liberties *= 5;
         groupStrength *= 20; // Increased weight on group strength
+        if (std::rand() % 100 < 0.9) score += connectionBonus;
         if (connectionBonus == 0) score -= 25;
     }
 
     score -= weakStones * 15; // Still penalizing weak stones
     node->weakStoneValue = weakStones * -15;
 
-    score += liberties / (goodStones + badStones);  // Increased weight on liberties
-    node->libertyValue = liberties / (goodStones + badStones);
+    score += liberties / (goodStones + badStones + 1);  // Increased weight on liberties
+    node->libertyValue = liberties / (goodStones + badStones + 1);
 
     score += groupStrength;
     node->groupValue = groupStrength;
 
     score += (goodStones - badStones) * 100;
     node->stoneValue = (goodStones - badStones) * 100;
-
-    score += connectionBonus;
 
     score = score * currentStone;
     node->value = score;
