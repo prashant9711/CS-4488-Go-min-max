@@ -472,7 +472,7 @@ public:
                         if (!alphaBetaMove()) {
                             cout << "No valid moves left for the bot. Passing turn.\n";
                             passCount++;
-                            currentPlayer = 'B';
+                            currentPlayer = 'W';
                         }
                     } 
                     else { // For Player vs Player 
