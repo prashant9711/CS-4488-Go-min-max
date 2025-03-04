@@ -287,7 +287,6 @@ public:
     // This function will decide best move for bot based on pruning min max algorithm
     bool alphaBetaMove() {
         vector<pair<int, int>> emptySpaces;
-        set<pair<int, int>> visited;
 
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
@@ -326,11 +325,10 @@ public:
         for (std::shared_ptr<Node> child : root->children) {
             auto startTime = steady_clock::now();
             int eval = alphaBeta(child, 3, -10000, 10000, false, startTime);
-            if (eval > bestValue && moveCheck(child->moveX, child->moveY, currentPlayer, visited)) {
+            if (eval > bestValue) {
                 bestValue = eval;
                 bestMove = child;
             }
-            visited.clear();
         }
 
         if (bestMove) {
@@ -363,7 +361,6 @@ public:
 
     bool alphaBetaMove2() {
         vector<pair<int, int>> emptySpaces;
-        set<pair<int, int>> visited;
 
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
@@ -402,11 +399,10 @@ public:
         for (std::shared_ptr<Node> child : root->children) {
             auto startTime = steady_clock::now();
             int eval = alphaBeta(child, 3, -10000, 10000, false, startTime);
-            if (eval > bestValue && moveCheck(child->moveX, child->moveY, currentPlayer, visited)) {
+            if (eval > bestValue) {
                 bestValue = eval;
                 bestMove = child;
             }
-            visited.clear();
         }
 
         if (bestMove) {
@@ -476,7 +472,7 @@ public:
                         if (!alphaBetaMove()) {
                             cout << "No valid moves left for the bot. Passing turn.\n";
                             passCount++;
-                            currentPlayer = 'W';
+                            currentPlayer = 'B';
                         }
                     } 
                     else { // For Player vs Player 
