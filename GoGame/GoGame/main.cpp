@@ -363,7 +363,7 @@ public:
 
     bool alphaBetaMove2() {
         vector<pair<int, int>> emptySpaces;
-        vector < pair<int, int>> visited;
+        set<pair<int, int>> visited;
 
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
