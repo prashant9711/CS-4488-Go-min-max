@@ -118,7 +118,7 @@ int countLiberties(int row, int col, int player, std::shared_ptr<Node> node, set
 int calculateHeatmapValue(int x, int y, int boardSize) {
     // Check if the move is on the edge
     if (x == 0 || x == boardSize - 1 || y == 0 || y == boardSize - 1) {
-        return 10; // Edge (lowest value)
+        return -45; // Edge (lowest value)
     }
 
     // Distance from the edges
@@ -173,13 +173,14 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int goodStones = 0;
     int badStones = 0;
     set<pair<int, int>> visited;
-    std::srand(std::time(0));
+    std::srand(std::time(0));   
 
     // Capture score
     int capturedStones = checkCaptures(currentTurnStone * -1, node);
     score += capturedStones * (100 + (capturedStones * 5));
     node->captureValue = score;
     if (score == 0) {
+        if (!moveCheck(node->moveX, node->moveY, currentStone, node, visited)) score -= 10000;
         capturedStones = checkCaptures(currentTurnStone, node);
         score -= capturedStones * (100 + (capturedStones * 5));
         node->captureValue -= score;
@@ -239,6 +240,7 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
         groupStrength *= 10;
         if (std::rand() % 100 < 0.75) score += connectionBonus;
         if (connectionBonus == 0) score -= 10;
+        score += calculateHeatmapValue(node->moveX, node->moveY, node->boardSize) * 0.35;
     }
     else {
         // Late game: prioritize group strength
@@ -246,6 +248,7 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
         groupStrength *= 20; // Increased weight on group strength
         if (std::rand() % 100 < 0.9) score += connectionBonus;
         if (connectionBonus == 0) score -= 25;
+        score += calculateHeatmapValue(node->moveX, node->moveY, node->boardSize) * 0.2;
     }
 
     score -= weakStones * 25; // Still penalizing weak stones
