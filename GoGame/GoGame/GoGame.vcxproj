@@ -103,6 +103,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="board.hpp" />
+    <ClInclude Include="alpha-beta-pruning.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="goutil.hpp" />
     <ClInclude Include="window.hpp" />
@@ -114,6 +115,7 @@
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="alpha-beta-pruning.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>

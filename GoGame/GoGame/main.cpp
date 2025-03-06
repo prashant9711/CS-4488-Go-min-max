@@ -7,18 +7,27 @@
 #include <limits>
 #include <thread>
 #include <chrono>
+#include <limits>
 #include <set>
 #include <map>
-#ifndef GO_WINDOW
-#include "window.hpp"
-#endif
+#include <chrono>
+#include <algorithm>
+#include <mutex>
+#include <future>
+
+using namespace std::chrono;
+std::mutex mtx;
+
+// #ifndef GO_WINDOW
+// #include "window.hpp"
+// #endif
 
 #ifndef GO_BOARD
 #include "board.hpp"
 #endif
 
-#ifndef GO_UTIL
-#include "goutil.hpp"
+#ifndef ALPHA_BETA_PRUNING_H
+#include "alpha-beta-pruning.h"
 #endif
 
 //Comment this out if you want to use the unicode board
@@ -142,6 +151,17 @@ public:
             }
         }
     }
+
+    // created by Andrija
+    void printSummary(std::shared_ptr<Node> node) {
+        cout << "Capture value: " << node->captureValue << "\n";
+        cout << "Liberty value: " << node->libertyValue << "\n";
+        cout << "Group value: " << node->groupValue << "\n";
+        cout << "Weak stone value: " << node->weakStoneValue << "\n";
+        cout << "Stone value: " << node->stoneValue << "\n";
+        cout << "Total value: " << node->value << "\n";
+    }
+
     // Created by Prashant
     // Modified by Rhett
     // check for captures and remove
@@ -167,6 +187,7 @@ public:
     // Created by Ethan
     // Modified by Rhett
     bool placeStone(int row, int col) { //Using 0 based indexing here
+
 
         // Added by Prashant
         // Checking for pass
@@ -319,13 +340,223 @@ public:
         set<pair<int, int>> visited;
         // stopping illegal moves
         if (!moveCheck(row, col, currentPlayer, visited)) {
-            board[row][col] = EMPTY;
+            board[row][col] = '.';
             return false;
         }
 
-        return result;
+        currentPlayer = (currentPlayer == 'W') ? 'B' : 'W'; // Switch players
+        return true;
     }
 
+    // added by Andrija Sevaljevic
+    bool alphaBetaMove() {
+        vector<pair<int, int>> emptySpaces;
+
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (board[row][col] == '.') {
+                    emptySpaces.push_back({ row, col });
+                }
+            }
+        }
+
+        if (emptySpaces.empty()) return false; // No valid moves left (pass)
+
+        // Convert char board to int board (-1 = black, 1 = white, 0 = empty)
+        vector<vector<int>> intBoard(size, vector<int>(size, 0));
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == 'B') intBoard[i][j] = -1;
+                else if (board[i][j] == 'W') intBoard[i][j] = 1;
+            }
+        }
+
+        // Create root node
+        std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
+
+        // Generate possible moves
+        generateNChildren(root, (currentPlayer == 'W'));
+
+        if (root->children.empty()) {
+            // No possible moves
+            return false;
+        }
+
+        // Run alpha-beta pruning in parallel
+        int bestValue = -10000;
+        std::shared_ptr<Node> bestMove = nullptr;
+
+        // Function to evaluate a subset of child nodes
+        auto evaluateChildren = [&](int start, int end) {
+            int localBestValue = -10000;
+            std::shared_ptr<Node> localBestMove = nullptr;
+
+            for (int i = start; i < end; i++) {
+                auto startTime = steady_clock::now();
+                int eval = alphaBeta(root->children[i], 3, -10000, 10000, false, startTime);
+                if (eval > localBestValue) {
+                    localBestValue = eval;
+                    localBestMove = root->children[i];
+                }
+            }
+            //Added by Prashant
+            // Lock the mutex to update the shared bestValue and bestMove
+            std::lock_guard<std::mutex> lock(mtx);
+            if (localBestValue > bestValue) {
+                bestValue = localBestValue;
+                bestMove = localBestMove;
+            }
+            };
+
+        // Determine the number of threads to use
+        unsigned int numThreads = std::thread::hardware_concurrency();
+        int childrenPerThread = root->children.size() / numThreads;
+
+        // Create threads
+        //Added by Prashant
+        std::vector<std::thread> threads;
+        for (unsigned int i = 0; i < numThreads; i++) {
+            int start = i * childrenPerThread;
+            int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
+            threads.emplace_back(evaluateChildren, start, end);
+        }
+
+        // Wait for all threads to finish
+        //Added by Prashant
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        if (bestMove) {
+            int row = bestMove->moveX;
+            int col = bestMove->moveY;
+            board[row][col] = currentPlayer;
+
+            // Check captures
+            checkCaptures(row, col);
+
+            printSummary(bestMove);
+
+            // Prevent illegal moves
+            set<pair<int, int>> visited;
+            if (!moveCheck(row, col, currentPlayer, visited)) {
+                board[row][col] = '.';  // Undo move
+                return false;
+            }
+
+            currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Switch turns
+        }
+
+        freeChildren(root->children);  // Free memory
+
+        return true;
+    }
+
+    bool alphaBetaMove2() {
+        vector<pair<int, int>> emptySpaces;
+
+        // Find all empty spaces on the board
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (board[row][col] == '.') {
+                    emptySpaces.push_back({ row, col });
+                }
+            }
+        }
+
+        if (emptySpaces.empty()) return false; // No valid moves left (pass)
+
+        // Convert char board to int board (-1 = black, 1 = white, 0 = empty)
+        vector<vector<int>> intBoard(size, vector<int>(size, 0));
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == 'W') intBoard[i][j] = -1; // Swap roles of 'W' and 'B'
+                else if (board[i][j] == 'B') intBoard[i][j] = 1;
+            }
+        }
+
+        // Create root node
+        std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
+
+        // Generate possible moves
+        generateNChildren(root, (currentPlayer == 'B')); // Swap roles for player
+
+        if (root->children.empty()) {
+            // No possible moves
+            return false;
+        }
+
+        // Run alpha-beta pruning in parallel
+        int bestValue = -10000;
+        std::shared_ptr<Node> bestMove = nullptr;
+
+        // Function to evaluate a subset of child nodes
+        auto evaluateChildren = [&](int start, int end) {
+            int localBestValue = -10000;
+            std::shared_ptr<Node> localBestMove = nullptr;
+
+            for (int i = start; i < end; i++) {
+                auto startTime = steady_clock::now();
+                int eval = alphaBeta(root->children[i], 3, -10000, 10000, false, startTime);
+                if (eval > localBestValue) {
+                    localBestValue = eval;
+                    localBestMove = root->children[i];
+                }
+            }
+
+            // Lock the mutex to update the shared bestValue and bestMove
+            //Added by Prashant
+            std::lock_guard<std::mutex> lock(mtx);
+            if (localBestValue > bestValue) {
+                bestValue = localBestValue;
+                bestMove = localBestMove;
+            }
+            };
+
+        // Determine the number of threads to use
+        //Added by Prashant
+        unsigned int numThreads = std::thread::hardware_concurrency();
+        int childrenPerThread = root->children.size() / numThreads;
+
+        // Create threads
+        //Added by Prashant
+        std::vector<std::thread> threads;
+        for (unsigned int i = 0; i < numThreads; i++) {
+            int start = i * childrenPerThread;
+            int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
+            threads.emplace_back(evaluateChildren, start, end);
+        }
+
+        // Wait for all threads to finish
+        //Added by Prashant
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        if (bestMove) {
+            int row = bestMove->moveX;
+            int col = bestMove->moveY;
+            board[row][col] = currentPlayer;
+
+            // Check captures
+            checkCaptures(row, col);
+
+            // Print summary of the move
+            printSummary(bestMove);
+
+            // Prevent illegal moves
+            set<pair<int, int>> visited;
+            if (!moveCheck(row, col, currentPlayer, visited)) {
+                board[row][col] = '.';  // Undo move
+                return false;
+            }
+
+            currentPlayer = (currentPlayer == 'B') ? 'W' : 'B';  // Switch turns
+        }
+
+        freeChildren(root->children);  // Free memory
+        return true;
+    }
 
     // Gameplay loop
     // Created by Ethan
@@ -344,35 +575,31 @@ public:
         }
         while (true) {
             displayBoard();
-            //Added by Prashant
-            if (currentPlayer == 'B') { // Player's turn
-                cout << "Player " << currentPlayer << ", enter move (e.g., A0), 'pass' to skip, or 'quit' to exit: ";
-                cin >> move;
-
-                if (!placeStone(move)) {
-                    if (move == "quit") return; // Quit game and return to menu mid game
-                    cout << "Invalid move! Try again.\n";
+            if (currentPlayer == 'B') {
+                cout << "Bot (" << currentPlayer << ") is making a move...\n";
+                if (!alphaBetaMove2()) { // Use parallelized alphaBetaMove2
+                    cout << "No valid moves left for the bot. Passing turn.\n";
+                    passCount++;
+                    currentPlayer = 'B';
                 }
             }
-
             else {
-                // Added by Prashant
-                    if (gameMode == "2") { // If Player vs Bot
-                        cout << "Bot (" << currentPlayer << ") is making a move...\n";
-                        if (!botMove()) {
-                            cout << "No valid moves left for the bot. Passing turn.\n";
-                            passCount++;
-                            currentPlayer = 'B';
-                        }
+                if (gameMode == "2") {
+                    cout << "Bot (" << currentPlayer << ") is making a move...\n";
+                    if (!alphaBetaMove()) { // Use parallelized alphaBetaMove
+                        cout << "No valid moves left for the bot. Passing turn.\n";
+                        passCount++;
+                        currentPlayer = 'B';
                     }
-                    else { // For Player vs Player
-                        cout << "Player " << currentPlayer << ", enter move (e.g., A0), 'pass' to skip: ";
-                        cin >> move;
+                }
+                else {
+                    cout << "Player " << currentPlayer << ", enter move (e.g., A0), 'pass' to skip: ";
+                    cin >> move;
 
-                        if (!placeStone(move)) {
-                            cout << "Invalid move! Try again.\n";
-                        }
+                    if (!placeStone(move)) {
+                        cout << "Invalid move! Try again.\n";
                     }
+                }
                 }
             if (passCount >= 2) { //if both players pass the game ends
                 cout << "Both players passed. Game over!\n";
@@ -408,15 +635,15 @@ public:
 
 };
 
-    // Created by Ethan
+// Created by Ethan
     //Modified by Rhett
-    void mainMenu() {
-        while (true) {
-            // Initial game menu
-            cout << "\n===== Go Game Menu =====\n";
-            cout << "1. Start a new game\n";
-            cout << "2. Quit\n";
-            cout << "Enter choice: ";
+void mainMenu() {
+    while (true) {
+        // Initial game menu
+        cout << "\n===== Go Game Menu =====\n";
+        cout << "1. Start a new game\n";
+        cout << "2. Quit\n";
+        cout << "Enter choice: ";
 
             int choice = 0;
 
@@ -430,13 +657,14 @@ public:
                 catch (std::invalid_argument err) {
                     cout << "Invalid input! Please enter 1 or 2: ";
                 }
-            }
+        }
 
-            if (choice == 2) {
-                // Exit game from menu
-                cout << "Exiting game. Goodbye!\n";
-                return;
-            }
+        if (choice == 2) {
+            // Exit game from menu
+            cout << "Exiting game. Goodbye!\n";
+            return;
+        }
+        else if (choice == 1) {
             // Start game loop
             int boardSize;
             std::cout << "Choose the board size (5 <= size <= 19): ";
@@ -451,18 +679,52 @@ public:
                     cout << "Invalid input! Please enter a number in between 5 and 19 (inclusive): ";
                 }
             }
+
             // Draw board and start gameplay loop
             GoGame game(boardSize);
             game.play();
         }
-
+        else {
+            // Error catch for invalid input
+            cout << "Invalid choice! Please enter 1 or 2.\n";
+        }
     }
 
-    // Created by Ethan
-    int main() {
-        mainMenu();
+}
 
+// Created by Ethan
+int main() {
+    mainMenu();
 
-        return 0;
-    }
+    
+    // int screenWidth = 120;
+    // int screenHeight = 60;
+    
+    // int stoneField_size = 19;
+    // int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
+    // int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
+    // std::shared_ptr<Board> board = std::make_shared<Board>(
+    //     boardWidth,
+    //     boardHeight,
+    //     stoneField_size,
+    //     (screenWidth - boardWidth) / 2,
+    //     (screenHeight - boardHeight) / 2
+    // );
+    // ConsoleWindow window(screenHeight, screenWidth, board);
+
+    // Space_Types turn = WHITE;
+    // window.display();
+    // while(1){
+
+    //     while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
+    //                                                     //Problem is, it depends on mouse input.  I will figure this out later.
+    //     window.display();
+    //     window.clear();
+        
+    //     std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
+    //     turn = static_cast<Space_Types>(!static_cast<bool>(turn));
+    // }
+
+    return 0;
+}
 

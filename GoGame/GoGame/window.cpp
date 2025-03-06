@@ -58,12 +58,19 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 	console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(console_handle);
 
+	//I wish I could get the window to resize here
+	//MoveWindow(window_handle, x, y, width, height, redraw_window);
+	//MoveWindow(hConsole, 100, 100, sWidth, sHeight, TRUE);
+	//SMALL_RECT rect = { 0, 0, sWidth, sHeight };
+	//SetConsoleWindowInfo(hConsole, TRUE, &rect);
+	
 	draw_row_and_col_labels();
 }
 
 //Rhett Thompson
 void ConsoleWindow::display() {
 	//Writes the screen characters to the console
+	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
 	board->draw_stone_sprites(board_copy); //Draw the stones over the copy
 	place_board_on_screen(); //Display the copy
 
