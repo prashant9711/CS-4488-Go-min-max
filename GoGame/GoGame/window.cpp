@@ -244,8 +244,7 @@ void Print_Window::display() {
 //Rhett Thompson
 void Print_Window::clear() {
 	board_copy = board->board;
-	std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25)); //Wait a moment before clearing the screen
-	//system("cls");
+	system("cls");
 }
 
 

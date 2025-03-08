@@ -48,17 +48,11 @@ public:
         int screenWidth = 120;
         int screenHeight = 60;
 
-        float sWidthf = static_cast<float>(screenWidth);
-        float sHeightf = static_cast<float>(screenHeight);
-        float sizef = static_cast<float>(size);
         int distance_bw_top = 5;
         int distance_bw_side = 20;
 
-        //int boardWidth = ((size - 1) * ((screenWidth / (size - 1)) - 1 - ((size-1) < 10))) + 1;
         int boardWidth =  ( (screenWidth-distance_bw_side) / (size-1) ) * (size-1) + 1;
         int boardHeight = ( (screenHeight-distance_bw_top) / (size-1) ) * (size-1) + 1;
-        //int boardHeight = ((size - 1) * ((screenHeight / (size - 1)) - 1)) + 1;
-        //int boardHeight = screenHeight - 10;
 
 #ifndef PRINT_WINDOW
         board_class = std::make_shared<Wchar_Board>(
