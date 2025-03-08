@@ -73,7 +73,6 @@ void ConsoleWindow::display() {
 	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
 	board->draw_stone_sprites(board_copy); //Draw the stones over the copy
 	place_board_on_screen(); //Display the copy
-
 	//draw_turn_info();
 	one_dimensionalize();
 	WriteConsoleOutputCharacter(console_handle, oneD_screen.data(), screenWidth * screenHeight, { 0,0 }, &dwBytesWritten);
@@ -110,6 +109,15 @@ void ConsoleWindow::one_dimensionalize() {
 		oneD_screen[i] = screen[i / screenWidth][i % screenWidth];
 	}
 }
+
+void ConsoleWindow::print_at_loc(int x, int y, const std::wstring& word) {
+	if (x < 0 || y < 0 || x >= screenWidth || y >= screenHeight) return;
+
+	for (int i = 0; i < word.size(); i++) {
+		screen[y][x + i] = word[i];
+	}
+}
+
 
 
 //Rhett Thompson
@@ -251,7 +259,7 @@ void Print_Window::display() {
 //Rhett Thompson
 void Print_Window::clear() {
 	board_copy = board->board;
-	system("cls");
+	//system("cls");
 }
 
 

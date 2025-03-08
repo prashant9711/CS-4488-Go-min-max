@@ -51,6 +51,7 @@ class ConsoleWindow : public Window {
 		std::shared_ptr<Wchar_Board> board;
 		std::vector<std::vector<wchar_t>> board_copy;
 
+
 		HANDLE console_handle;
 		DWORD dwBytesWritten = 0;
 
@@ -58,6 +59,7 @@ class ConsoleWindow : public Window {
 		void one_dimensionalize();
 		void draw_row_and_col_labels();
 		void draw_turn_info();
+		void print_at_loc(int x, int y, const std::wstring& word);
 		std::unique_ptr<MOUSE_EVENT_RECORD> get_mouse_coord_on_click();
 
 

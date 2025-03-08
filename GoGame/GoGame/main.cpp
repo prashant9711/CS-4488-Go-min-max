@@ -18,9 +18,9 @@
 using namespace std::chrono;
 std::mutex mtx;
 
-// #ifndef GO_WINDOW
-// #include "window.hpp"
-// #endif
+ #ifndef GO_WINDOW
+ #include "window.hpp"
+ #endif
 
 #ifndef GO_BOARD
 #include "board.hpp"
@@ -28,6 +28,10 @@ std::mutex mtx;
 
 #ifndef ALPHA_BETA_PRUNING_H
 #include "alpha-beta-pruning.h"
+#endif
+
+#ifndef GO_UTIL
+#include "goutil.hpp"
 #endif
 
 //Comment this out if you want to use the unicode board
@@ -40,11 +44,10 @@ using namespace std;
 class GoGame {
 private:
     // Initial variables for board and game creation
-    int size;
-    //vector<vector<char>> board;
     std::shared_ptr<Board> board_class;
-    //char currentPlayer;
     std::shared_ptr<Window> window;
+    std::string gameMode;
+    int size;
     // Added by Prashant
     Space_Types currentPlayer;
     bool hasBot = false;
@@ -52,7 +55,7 @@ private:
 
     //edited by Prashant changed the first player to black
 public:
-    GoGame(int boardSize) : size(boardSize), currentPlayer(WHITE), passCount(0) {
+    GoGame(int boardSize, const std::string& game_mode) : size(boardSize), gameMode(game_mode), currentPlayer(WHITE), passCount(0) {
 
         int screenWidth = 120;
         int screenHeight = 60;
@@ -340,21 +343,21 @@ public:
         set<pair<int, int>> visited;
         // stopping illegal moves
         if (!moveCheck(row, col, currentPlayer, visited)) {
-            board[row][col] = '.';
+            board[row][col] = EMPTY;
             return false;
         }
 
-        currentPlayer = (currentPlayer == 'W') ? 'B' : 'W'; // Switch players
         return true;
     }
 
     // added by Andrija Sevaljevic
     bool alphaBetaMove() {
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
         vector<pair<int, int>> emptySpaces;
 
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                if (board[row][col] == '.') {
+                if (board[row][col] == EMPTY) {
                     emptySpaces.push_back({ row, col });
                 }
             }
@@ -366,8 +369,8 @@ public:
         vector<vector<int>> intBoard(size, vector<int>(size, 0));
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                if (board[i][j] == 'B') intBoard[i][j] = -1;
-                else if (board[i][j] == 'W') intBoard[i][j] = 1;
+                if (board[i][j] == BLACK) intBoard[i][j] = -1;
+                else if (board[i][j] == WHITE) intBoard[i][j] = 1;
             }
         }
 
@@ -375,7 +378,7 @@ public:
         std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
 
         // Generate possible moves
-        generateNChildren(root, (currentPlayer == 'W'));
+        generateNChildren(root, (currentPlayer == WHITE));
 
         if (root->children.empty()) {
             // No possible moves
@@ -406,7 +409,7 @@ public:
                 bestValue = localBestValue;
                 bestMove = localBestMove;
             }
-            };
+        };
 
         // Determine the number of threads to use
         unsigned int numThreads = std::thread::hardware_concurrency();
@@ -426,6 +429,8 @@ public:
         for (auto& thread : threads) {
             thread.join();
         }
+
+        freeChildren(root->children);  // Free memory
 
         if (bestMove) {
             int row = bestMove->moveX;
@@ -440,25 +445,22 @@ public:
             // Prevent illegal moves
             set<pair<int, int>> visited;
             if (!moveCheck(row, col, currentPlayer, visited)) {
-                board[row][col] = '.';  // Undo move
+                board[row][col] = EMPTY;  // Undo move
                 return false;
             }
-
-            currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Switch turns
         }
-
-        freeChildren(root->children);  // Free memory
 
         return true;
     }
 
     bool alphaBetaMove2() {
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
         vector<pair<int, int>> emptySpaces;
 
         // Find all empty spaces on the board
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                if (board[row][col] == '.') {
+                if (board[row][col] == EMPTY) {
                     emptySpaces.push_back({ row, col });
                 }
             }
@@ -470,8 +472,8 @@ public:
         vector<vector<int>> intBoard(size, vector<int>(size, 0));
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                if (board[i][j] == 'W') intBoard[i][j] = -1; // Swap roles of 'W' and 'B'
-                else if (board[i][j] == 'B') intBoard[i][j] = 1;
+                if (board[i][j] == WHITE) intBoard[i][j] = -1; // Swap roles of 'W' and 'B'
+                else if (board[i][j] == BLACK) intBoard[i][j] = 1;
             }
         }
 
@@ -479,7 +481,7 @@ public:
         std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
 
         // Generate possible moves
-        generateNChildren(root, (currentPlayer == 'B')); // Swap roles for player
+        generateNChildren(root, (currentPlayer == BLACK)); // Swap roles for player
 
         if (root->children.empty()) {
             // No possible moves
@@ -532,6 +534,8 @@ public:
         for (auto& thread : threads) {
             thread.join();
         }
+
+        freeChildren(root->children);  // Free memory
 
         if (bestMove) {
             int row = bestMove->moveX;
@@ -547,14 +551,12 @@ public:
             // Prevent illegal moves
             set<pair<int, int>> visited;
             if (!moveCheck(row, col, currentPlayer, visited)) {
-                board[row][col] = '.';  // Undo move
+                board[row][col] = EMPTY;  // Undo move
                 return false;
             }
 
-            currentPlayer = (currentPlayer == 'B') ? 'W' : 'B';  // Switch turns
         }
 
-        freeChildren(root->children);  // Free memory
         return true;
     }
 
@@ -562,25 +564,18 @@ public:
     // Created by Ethan
     // Modified by Rhett
     void play() {
-        /*string move;
-        string gameMode;
-        // Added by Prashant
-        // Choose game mode
-        cout << "Choose game mode (1 for Player vs Player, 2 for Player vs Bot): ";
-        cin >> gameMode;
-        //end
-        while (gameMode != "1" && gameMode != "2") {
-            cout << "Invalid choice! Please enter 1 for Player vs Player or 2 for Player vs Bot: ";
-            cin >> gameMode;
-        }
-        while (true) {
-            displayBoard();
-            if (currentPlayer == 'B') {
+
+
+        std::unique_ptr<std::pair<float, float>> input_coords;
+        window->clear();
+        while (1) {
+            
+            window->display();
+            if (currentPlayer == BLACK) {
                 cout << "Bot (" << currentPlayer << ") is making a move...\n";
                 if (!alphaBetaMove2()) { // Use parallelized alphaBetaMove2
                     cout << "No valid moves left for the bot. Passing turn.\n";
                     passCount++;
-                    currentPlayer = 'B';
                 }
             }
             else {
@@ -589,34 +584,15 @@ public:
                     if (!alphaBetaMove()) { // Use parallelized alphaBetaMove
                         cout << "No valid moves left for the bot. Passing turn.\n";
                         passCount++;
-                        currentPlayer = 'B';
                     }
                 }
-                else {
-                    cout << "Player " << currentPlayer << ", enter move (e.g., A0), 'pass' to skip: ";
-                    cin >> move;
-
-                    if (!placeStone(move)) {
-                        cout << "Invalid move! Try again.\n";
+               else {
+                    while (1) {
+                        input_coords = window->get_input();
+                        if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
+                        std::cout << "Invalid move\n";
                     }
                 }
-                }
-            if (passCount >= 2) { //if both players pass the game ends
-                cout << "Both players passed. Game over!\n";
-                calculateScores(); //getting the scores
-                return;
-            }
-        }
-    }*/
-        std::unique_ptr<std::pair<float, float>> input_coords;
-        window->clear();
-        while (1) {
-            
-            window->display();
-            while (1) {
-                input_coords = window->get_input();
-                if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
-                std::cout << "Invalid move\n";
             }
             
             window->clear();
@@ -647,16 +623,16 @@ void mainMenu() {
 
             int choice = 0;
 
-            while (1) {
-                try {
-                    choice = std::stoi(Go_Util::get_keyboard_input());
-                    if (choice == 1 || choice == 2) break;
-                    std::cout << "Please enter 1 or 2:";
+        while (1) {
+            try {
+                choice = std::stoi(Go_Util::get_keyboard_input());
+                if (choice == 1 || choice == 2) break;
+                std::cout << "Please enter 1 or 2:";
 
-                }
-                catch (std::invalid_argument err) {
-                    cout << "Invalid input! Please enter 1 or 2: ";
-                }
+            }
+            catch (std::invalid_argument err) {
+                cout << "Invalid input! Please enter 1 or 2: ";
+            }
         }
 
         if (choice == 2) {
@@ -680,8 +656,17 @@ void mainMenu() {
                 }
             }
 
+            std::string gameMode;
+
+            cout << "Choose game mode (1 for Player vs Player, 2 for Bot vs Bot): ";
+            while (1) {
+                gameMode = Go_Util::get_keyboard_input(1);
+                if (gameMode == "1" || gameMode == "2") break;
+                cout << "Invalid choice! Please enter 1 for Player vs Player or 2 for Player vs Bot: ";
+            }
+
             // Draw board and start gameplay loop
-            GoGame game(boardSize);
+            GoGame game(boardSize, gameMode);
             game.play();
         }
         else {
@@ -696,34 +681,6 @@ void mainMenu() {
 int main() {
     mainMenu();
 
-    
-    // int screenWidth = 120;
-    // int screenHeight = 60;
-    
-    // int stoneField_size = 19;
-    // int boardWidth = ((stoneField_size - 1) * ((screenWidth / (stoneField_size - 1)) - 2)) + 1;
-    // int boardHeight = ((stoneField_size - 1) * ((screenHeight / (stoneField_size - 1)) - 1)) + 1;
-    // std::shared_ptr<Board> board = std::make_shared<Board>(
-    //     boardWidth,
-    //     boardHeight,
-    //     stoneField_size,
-    //     (screenWidth - boardWidth) / 2,
-    //     (screenHeight - boardHeight) / 2
-    // );
-    // ConsoleWindow window(screenHeight, screenWidth, board);
-
-    // Space_Types turn = WHITE;
-    // window.display();
-    // while(1){
-
-    //     while (!window.place_stone_for_player(turn)) {} //It would be better to have the board be the only one to place stones.
-    //                                                     //Problem is, it depends on mouse input.  I will figure this out later.
-    //     window.display();
-    //     window.clear();
-        
-    //     std::this_thread::sleep_for(std::chrono::duration<float, std::chrono::seconds::period>(0.25));
-    //     turn = static_cast<Space_Types>(!static_cast<bool>(turn));
-    // }
 
     return 0;
 }
