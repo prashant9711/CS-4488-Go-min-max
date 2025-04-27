@@ -37,6 +37,7 @@ std::mutex mtx;
 //Comment this out if you want to use the unicode board
 #define PRINT_WINDOW  //If this is defined, then Print_Window will be used
 
+static constexpr uint32_t THREADS = 10;
 
 using namespace std;
 
@@ -388,9 +389,9 @@ public:
         // Run alpha-beta pruning in parallel
         int bestValue = -10000;
         std::shared_ptr<Node> bestMove = nullptr;
-
         // Function to evaluate a subset of child nodes
         auto evaluateChildren = [&](int start, int end) {
+
             int localBestValue = -10000;
             std::shared_ptr<Node> localBestMove = nullptr;
 
@@ -411,16 +412,36 @@ public:
             }
         };
 
-        // Determine the number of threads to use
-        unsigned int numThreads = std::thread::hardware_concurrency();
-        int childrenPerThread = root->children.size() / numThreads;
 
-        // Create threads
+        //Bandaid Fix (added by Rhett)
+        std::set<std::shared_ptr<Node>> unique_nodes = {};
+        auto it = root->children.begin();
+        while (it != root->children.end()) {
+            if (unique_nodes.find(*it) != unique_nodes.end()) {
+                it = root->children.erase(it);
+                continue;
+            }
+            unique_nodes.insert(*it);
+            it++;
+        }
+        //----------------------------------------------
+
         //Added by Prashant
+        // Modified by Rhett
+        // Determine the number of threads to use
+        unsigned int numThreads = root->children.size();
+        int childrenPerThread = root->children.size() / numThreads;
+        if (childrenPerThread <= 0) childrenPerThread = 1;
+        int start = 0;
+        int end = childrenPerThread;
         std::vector<std::thread> threads;
-        for (unsigned int i = 0; i < numThreads; i++) {
-            int start = i * childrenPerThread;
+
+
+        for (; start < numThreads * childrenPerThread; start += childrenPerThread, end += childrenPerThread) {
+            /*int start = i * childrenPerThread;
             int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
+            threads.emplace_back(evaluateChildren, start, end);*/
+            if (start == (numThreads * childrenPerThread) - childrenPerThread) end = root->children.size();
             threads.emplace_back(evaluateChildren, start, end);
         }
 
@@ -429,6 +450,7 @@ public:
         for (auto& thread : threads) {
             thread.join();
         }
+
 
         freeChildren(root->children);  // Free memory
 
@@ -454,6 +476,7 @@ public:
     }
 
     bool alphaBetaMove2() {
+
         std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
         vector<pair<int, int>> emptySpaces;
 
@@ -491,9 +514,9 @@ public:
         // Run alpha-beta pruning in parallel
         int bestValue = -10000;
         std::shared_ptr<Node> bestMove = nullptr;
-
         // Function to evaluate a subset of child nodes
         auto evaluateChildren = [&](int start, int end) {
+
             int localBestValue = -10000;
             std::shared_ptr<Node> localBestMove = nullptr;
 
@@ -513,19 +536,36 @@ public:
                 bestValue = localBestValue;
                 bestMove = localBestMove;
             }
-            };
+        };
+        //Bandaid fix (added by Rhett).
+        std::set<std::shared_ptr<Node>> unique_nodes = {};
+        auto it = root->children.begin();
+        while (it != root->children.end()) {
+            if (unique_nodes.find(*it) != unique_nodes.end()) {
+                it = root->children.erase(it);
+                continue;
+            }
+            unique_nodes.insert(*it);
+            it++;
+        }
+        //----------------------------------
 
         // Determine the number of threads to use
         //Added by Prashant
-        unsigned int numThreads = std::thread::hardware_concurrency();
+        unsigned int numThreads = root->children.size();
+
         int childrenPerThread = root->children.size() / numThreads;
+        if (childrenPerThread <= 0) childrenPerThread = 1;
 
         // Create threads
         //Added by Prashant
+        //Modified by Rhett
+        int start = 0;
+        int end = childrenPerThread;
         std::vector<std::thread> threads;
-        for (unsigned int i = 0; i < numThreads; i++) {
-            int start = i * childrenPerThread;
-            int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
+
+        for (; start < numThreads * childrenPerThread; start += childrenPerThread, end += childrenPerThread) {
+            if (start == (numThreads * childrenPerThread) - childrenPerThread) end = root->children.size();
             threads.emplace_back(evaluateChildren, start, end);
         }
 
@@ -534,6 +574,7 @@ public:
         for (auto& thread : threads) {
             thread.join();
         }
+
 
         freeChildren(root->children);  // Free memory
 
@@ -600,6 +641,7 @@ public:
             currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
 
             if (passCount >= 2) { //if both players pass the game ends
+                window->display();
                 window.reset();
                 cout << "Both players passed. Game over!\n";
                 calculateScores(); //getting the scores
