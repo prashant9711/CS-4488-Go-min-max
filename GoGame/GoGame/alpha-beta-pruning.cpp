@@ -9,9 +9,12 @@
 #include <unordered_set>
 #include <cstdlib>
 #include <future>
+#include <string>
 
 using namespace std;
 using namespace std::chrono;
+
+
 
 // Getting the neighbors of the current position
 vector<pair<int, int>> getNeighbors(int row, int col) {
@@ -53,7 +56,9 @@ bool moveCheck(int row, int col, int player, std::shared_ptr<Node> node, set<pai
 // Modified to match data structure by Andrija Sevaljevic
 // Created by Prashant
 int removeStones(int row, int col, int player, std::shared_ptr<Node> node) {
+
     node->board[row][col] = 0;
+    
     for (const auto& neighbor : getNeighbors(row, col)) {
         int r = neighbor.first;
         int c = neighbor.second;
@@ -177,10 +182,12 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int capturedStones = checkCaptures(currentTurnStone * -1, node);
     score += capturedStones * (100 + (capturedStones * 5));
     node->captureValue = score;
+
     if (score == 0) {
         if (!moveCheck(node->moveX, node->moveY, currentStone, node, visited)) score -= 10000;
         capturedStones = checkCaptures(currentTurnStone, node);
         score -= capturedStones * (100 + (capturedStones * 5));
+
         node->captureValue -= score;
     }
 
@@ -195,14 +202,16 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int bottomRightInfluence = 0;
     int connectionBonus = calculateConnectionBonus(node->moveX, node->moveY, node->boardSize, node->board, currentStone);
 
+
+    int half_size = node->boardSize / 2;
     for (int x = 0; x < node->boardSize; x++) {
         for (int y = 0; y < node->boardSize; y++) {
             if (node->board[x][y] == currentTurnStone) {
                 goodStones++;
 
-                if (x <= node->boardSize / 2 && y <= node->boardSize / 2) topLeftInfluence++;
-                else if (x >= node->boardSize / 2 && y >= node->boardSize / 2) bottomRightInfluence++;
-                else if (x >= node->boardSize / 2 && y <= node->boardSize / 2) topRightInfluence++;
+                if (x <= half_size && y <= half_size) topLeftInfluence++;
+                else if (x >= half_size && y >= half_size) bottomRightInfluence++;
+                else if (x >= half_size && y <= half_size) topRightInfluence++;
                 else bottomLeftInfluence++;
 
                 if (!visited.count({ x, y })) {
@@ -272,9 +281,8 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     score += topLeftInfluence + topRightInfluence + bottomLeftInfluence + bottomRightInfluence;
 
     score = score * currentStone;
+
     node->value = score;
-
-
 
     return score;
 }
@@ -305,14 +313,14 @@ int alphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool m
 
     if (maximizingPlayer && depth != 0) {
         int maxEval = std::numeric_limits<int>::min();
-        for (std::shared_ptr<Node> child : node->children) {
-
+        for (int i = 0; i < node->children.size(); i++) {
+ 
             auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
             if (elapsed >= 10) {
                 return node->value;
             }
 
-            int eval = alphaBeta(child, dynamicDepth, alpha, beta, false, startTime);
+            int eval = alphaBeta(node->children[i], dynamicDepth, alpha, beta, false, startTime);
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
             if (beta <= alpha) break; // Beta cut-off
@@ -321,14 +329,14 @@ int alphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool m
     }
     else {
         int minEval = std::numeric_limits<int>::max();
-        for (std::shared_ptr<Node> child : node->children) {
+        for (int i = 0; i < node->children.size(); i++) {
 
             auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
             if (elapsed >= 10) {
                 return node->value;
             }
 
-            int eval = alphaBeta(child, dynamicDepth, alpha, beta, true, startTime);
+            int eval = alphaBeta(node->children[i], dynamicDepth, alpha, beta, true, startTime);
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
             if (beta <= alpha) break; // Alpha cut-off
@@ -419,6 +427,7 @@ void generateChildren(std::shared_ptr<Node> node, bool isMaximizing) {
             if (node->board[x][y] == 0) { // Empty spot
                 std::vector<std::vector<int>> newBoard = node->board;
                 newBoard[x][y] = playerValue;
+
                 node->children.push_back(std::make_shared<Node>(newBoard, node->boardSize, x, y, 0, node));
             }
         }
@@ -428,6 +437,7 @@ void generateChildren(std::shared_ptr<Node> node, bool isMaximizing) {
 // Added by Andrija Sevaljevic
 // This function generates a tree of N best possible moves
 void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
+
     int playerValue = isMaximizing ? 1 : -1;  // Assign '1' to Player 1, '-1' to Player 2
     vector<pair<int, std::shared_ptr<Node>>> evaluatedChildren; // Pair of evaluation score and Node pointer
 
@@ -446,7 +456,7 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
             }
         }
     }
-
+    
     if (isMaximizing) {
         // Sort children based on the evaluation score (highest first)
         sort(evaluatedChildren.begin(), evaluatedChildren.end(),
@@ -467,7 +477,9 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
     int topCount = min(5, moveCount);          // Top 5 moves
     int midCount = min(5, max(0, moveCount - 5)); // Middle 5 moves
 
+
     // Add top 5 moves
+
     for (int i = 0; i < topCount; i++) {
         node->children.push_back(evaluatedChildren[i].second);
     }
@@ -478,10 +490,6 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
         if (i < moveCount) {
             node->children.push_back(evaluatedChildren[i].second);
         }
-    }
-
-    for(auto& element: evaluatedChildren){
-        freeChildren(element.second->children);
     }
 }
 
