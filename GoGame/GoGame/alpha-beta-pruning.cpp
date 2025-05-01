@@ -495,6 +495,10 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
 
 
 //Rhett Thompson
+/**
+  * Free the memory that the nodes are using.
+  * @param children: Reference to a vector of nodes to be freed.
+*/
 void freeChildren(std::vector<std::shared_ptr<Node>>& children){
     for(int i = 0; i < children.size(); i++){
         if(children[i] != nullptr){
