@@ -8,9 +8,11 @@
 #include <thread>
 #include <chrono>
 
-#ifndef GO_WINDOW
-#include "window.hpp"
-#endif
+static constexpr uint32_t THREADS = 4;
+
+ #ifndef GO_WINDOW
+ #include "window.hpp"
+ #endif
 
 #ifndef GO_BOARD
 #include "board.hpp"
@@ -67,6 +69,203 @@ public:
 
         board[row][col] = currentPlayer; // Set current player stone location
         currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';  // Swap player
+        return true;
+    }
+
+        if (emptySpaces.empty()) return false; // No valid moves left (pass)
+
+        // Convert char board to int board (-1 = black, 1 = white, 0 = empty)
+        vector<vector<int>> intBoard(size, vector<int>(size, 0));
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == BLACK) intBoard[i][j] = -1;
+                else if (board[i][j] == WHITE) intBoard[i][j] = 1;
+            }
+        }
+
+        // Create root node
+        std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
+
+        // Generate possible moves
+        generateNChildren(root, (currentPlayer == WHITE));
+
+        if (root->children.empty()) {
+            // No possible moves
+            return false;
+        }
+
+        // Run alpha-beta pruning in parallel
+        int bestValue = -10000;
+        std::shared_ptr<Node> bestMove = nullptr;
+
+        // Function to evaluate a subset of child nodes
+        auto evaluateChildren = [&](int start, int end) {
+            int localBestValue = -10000;
+            std::shared_ptr<Node> localBestMove = nullptr;
+
+            for (int i = start; i < end; i++) {
+                auto startTime = steady_clock::now();
+                int eval = alphaBeta(root->children[i], 3, -10000, 10000, false, startTime);
+                if (eval > localBestValue) {
+                    localBestValue = eval;
+                    localBestMove = root->children[i];
+                }
+            }
+            //Added by Prashant
+            // Lock the mutex to update the shared bestValue and bestMove
+            std::lock_guard<std::mutex> lock(mtx);
+            if (localBestValue > bestValue) {
+                bestValue = localBestValue;
+                bestMove = localBestMove;
+            }
+        };
+
+        // Determine the number of threads to use
+        unsigned int numThreads = std::thread::hardware_concurrency();
+        int childrenPerThread = root->children.size() / numThreads;
+
+        // Create threads
+        //Added by Prashant
+        std::vector<std::thread> threads;
+        for (unsigned int i = 0; i < numThreads; i++) {
+            int start = i * childrenPerThread;
+            int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
+            threads.emplace_back(evaluateChildren, start, end);
+        }
+
+        // Wait for all threads to finish
+        //Added by Prashant
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        freeChildren(root->children);  // Free memory
+
+        if (bestMove) {
+            int row = bestMove->moveX;
+            int col = bestMove->moveY;
+            board[row][col] = currentPlayer;
+
+            // Check captures
+            checkCaptures(row, col);
+
+            printSummary(bestMove);
+
+            // Prevent illegal moves
+            set<pair<int, int>> visited;
+            if (!moveCheck(row, col, currentPlayer, visited)) {
+                board[row][col] = EMPTY;  // Undo move
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool alphaBetaMove2() {
+        std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
+        vector<pair<int, int>> emptySpaces;
+
+        // Find all empty spaces on the board
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (board[row][col] == EMPTY) {
+                    emptySpaces.push_back({ row, col });
+                }
+            }
+        }
+
+        if (emptySpaces.empty()) return false; // No valid moves left (pass)
+
+        // Convert char board to int board (-1 = black, 1 = white, 0 = empty)
+        vector<vector<int>> intBoard(size, vector<int>(size, 0));
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == WHITE) intBoard[i][j] = -1; // Swap roles of 'W' and 'B'
+                else if (board[i][j] == BLACK) intBoard[i][j] = 1;
+            }
+        }
+
+        // Create root node
+        std::shared_ptr<Node> root = std::make_shared<Node>(intBoard, size);
+
+        // Generate possible moves
+        generateNChildren(root, (currentPlayer == BLACK)); // Swap roles for player
+
+        if (root->children.empty()) {
+            // No possible moves
+            return false;
+        }
+
+        // Run alpha-beta pruning in parallel
+        int bestValue = -10000;
+        std::shared_ptr<Node> bestMove = nullptr;
+
+        // Function to evaluate a subset of child nodes
+        auto evaluateChildren = [&](int start, int end) {
+            int localBestValue = -10000;
+            std::shared_ptr<Node> localBestMove = nullptr;
+
+            for (int i = start; i < end; i++) {
+                auto startTime = steady_clock::now();
+                int eval = alphaBeta(root->children[i], 3, -10000, 10000, false, startTime);
+                if (eval > localBestValue) {
+                    localBestValue = eval;
+                    localBestMove = root->children[i];
+                }
+            }
+
+            // Lock the mutex to update the shared bestValue and bestMove
+            //Added by Prashant
+            std::lock_guard<std::mutex> lock(mtx);
+            if (localBestValue > bestValue) {
+                bestValue = localBestValue;
+                bestMove = localBestMove;
+            }
+            };
+
+        // Determine the number of threads to use
+        //Added by Prashant
+        unsigned int numThreads = std::thread::hardware_concurrency();
+        int childrenPerThread = root->children.size() / numThreads;
+
+        // Create threads
+        //Added by Prashant
+        std::vector<std::thread> threads;
+        for (unsigned int i = 0; i < numThreads; i++) {
+            int start = i * childrenPerThread;
+            int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
+            threads.emplace_back(evaluateChildren, start, end);
+        }
+
+        // Wait for all threads to finish
+        //Added by Prashant
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        freeChildren(root->children);  // Free memory
+
+        if (bestMove) {
+            int row = bestMove->moveX;
+            int col = bestMove->moveY;
+            board[row][col] = currentPlayer;
+
+            // Check captures
+            checkCaptures(row, col);
+
+            // Print summary of the move
+            printSummary(bestMove);
+
+            // Prevent illegal moves
+            set<pair<int, int>> visited;
+            if (!moveCheck(row, col, currentPlayer, visited)) {
+                board[row][col] = EMPTY;  // Undo move
+                return false;
+            }
+
+        }
+
         return true;
     }
 
