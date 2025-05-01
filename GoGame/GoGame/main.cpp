@@ -18,9 +18,9 @@
 using namespace std::chrono;
 std::mutex mtx;
 
- #ifndef GO_WINDOW
- #include "window.hpp"
- #endif
+#ifndef GO_WINDOW
+#include "window.hpp"
+#endif
 
 #ifndef GO_BOARD
 #include "board.hpp"
@@ -56,7 +56,7 @@ private:
 
     //edited by Prashant changed the first player to black
 public:
-    GoGame(int boardSize, const std::string& game_mode) : size(boardSize), gameMode(game_mode), currentPlayer(WHITE), passCount(0) {
+    GoGame(int boardSize, const std::string& game_mode) : size(boardSize), gameMode(game_mode), currentPlayer(BLACK), passCount(0) {
 
         int screenWidth = 120;
         int screenHeight = 60;
@@ -609,10 +609,13 @@ public:
 
         std::unique_ptr<std::pair<float, float>> input_coords;
         window->clear();
+        
+
         while (1) {
-            
+
             window->display();
-            if (currentPlayer == BLACK) {
+
+            if (currentPlayer == WHITE) {
                 cout << "Bot (" << currentPlayer << ") is making a move...\n";
                 if (!alphaBetaMove2()) { // Use parallelized alphaBetaMove2
                     cout << "No valid moves left for the bot. Passing turn.\n";
@@ -636,6 +639,38 @@ public:
                 }
             }
             
+            window->clear();
+
+            currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
+
+            if (passCount >= 2) { //if both players pass the game ends
+                window->display();
+                window.reset();
+                cout << "Both players passed. Game over!\n";
+                calculateScores(); //getting the scores
+                return;
+            }
+        }
+    }
+
+
+    //Rhett Thompson
+    /**
+      * Method for player vs player
+      */
+    void play_PVP() {
+
+        std::unique_ptr<std::pair<float, float>> input_coords;
+        window->clear();
+        while (1) {
+            window->display();
+            while (1) {
+                input_coords = window->get_input();
+                if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
+                std::cout << "Invalid move\n";
+            }
+
+            checkCaptures(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second));
             window->clear();
 
             currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
@@ -700,15 +735,19 @@ void mainMenu() {
 
             std::string gameMode;
 
-            cout << "Choose game mode (1 for Player vs Player, 2 for Bot vs Bot): ";
+            cout << "Choose game mode (1 for Player vs Bot, 2 for Bot vs Bot, 3 for Player vs Player): ";
             while (1) {
                 gameMode = Go_Util::get_keyboard_input(1);
-                if (gameMode == "1" || gameMode == "2") break;
-                cout << "Invalid choice! Please enter 1 for Player vs Player or 2 for Player vs Bot: ";
+                if (gameMode == "1" || gameMode == "2" || gameMode == "3") break;
+                cout << "Invalid choice! Please enter 1 for Player vs Bot, 2 for Bot vs Bot, or 3 for Player vs Player: ";
             }
 
             // Draw board and start gameplay loop
             GoGame game(boardSize, gameMode);
+            if (gameMode == "3") {
+                game.play_PVP();
+                continue;
+            }
             game.play();
         }
         else {
