@@ -17,6 +17,10 @@
 #include <Windows.h>
 #endif
 
+#ifndef _STRING_
+#include <string>
+#endif
+
 
 //Rhett Thompson
 class Window {
@@ -29,6 +33,7 @@ class Window {
 
 		Window(int sHeight, int sWidth): screenHeight(sHeight), screenWidth(sWidth){}
 
+		virtual std::unique_ptr<std::pair<float, float>> get_input() = 0;
 		virtual void display() = 0;
 		virtual void clear() = 0;
 
@@ -36,14 +41,16 @@ class Window {
 
 
 //Rhett Thompson
-class ConsoleWindow : Window {
+class ConsoleWindow : public Window {
 
 	private:
 
 		std::vector<std::vector<wchar_t>> screen;
 		std::vector<wchar_t> oneD_screen;
 
-		std::shared_ptr<Board> board;
+		std::shared_ptr<Wchar_Board> board;
+		std::vector<std::vector<wchar_t>> board_copy;
+
 
 		HANDLE console_handle;
 		DWORD dwBytesWritten = 0;
@@ -51,7 +58,8 @@ class ConsoleWindow : Window {
 		void place_board_on_screen();
 		void one_dimensionalize();
 		void draw_row_and_col_labels();
-		void draw_turn_info();
+		void draw_turn_info(Space_Types player);
+		void print_at_loc(int x, int y, const std::wstring& word);
 		std::unique_ptr<MOUSE_EVENT_RECORD> get_mouse_coord_on_click();
 
 
@@ -60,11 +68,44 @@ class ConsoleWindow : Window {
 		ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> board);
 		~ConsoleWindow();
 
-		bool place_stone_for_player(Space_Types player);
+		std::unique_ptr<std::pair<float, float>> get_input();
+
+	
+		void display();
+		void clear();
+};
+
+
+
+//Rhett Thompson
+class Print_Window : public Window {
+
+	private:
+
+		std::vector<std::vector<char>> screen;
+
+		std::shared_ptr<Char_Board> board;
+		std::vector<std::vector<char>> board_copy;
+
+		void place_board_on_screen();
+		void draw_row_and_col_labels();
+		void draw_turn_info();
+
+
+	public:
+		
+
+		Print_Window(int sHeight, int sWidth, std::shared_ptr<Board> board);
+		~Print_Window() {};
+
+		std::unique_ptr<std::pair<float, float>> get_input();
 
 		void display();
 		void clear();
 };
+
+
+
 
 
 
