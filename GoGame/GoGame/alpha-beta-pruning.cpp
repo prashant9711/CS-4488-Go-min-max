@@ -169,6 +169,7 @@ int calculateConnectionBonus(int x, int y, int boardSize, const std::vector<std:
 
 
 // Added by Andrija Sevaljevic
+// Modified by all to fine-tune move weights
 // This function calcaultes the strength of a move
 int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int score = 0;
