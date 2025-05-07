@@ -1,4 +1,4 @@
-﻿
+
 #ifndef GO_WINDOW
 #include "window.hpp"
 #endif
