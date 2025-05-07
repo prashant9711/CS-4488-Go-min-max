@@ -58,11 +58,7 @@ class ConsoleWindow : public Window {
 		void place_board_on_screen();
 		void one_dimensionalize();
 		void draw_row_and_col_labels();
-<<<<<<< HEAD
 		void draw_turn_info();
-=======
-		void draw_turn_info(Space_Types player);
->>>>>>> 5ee9c55 (some changes to alpha beta)
 		void print_at_loc(int x, int y, const std::wstring& word);
 		std::unique_ptr<MOUSE_EVENT_RECORD> get_mouse_coord_on_click();
 
@@ -74,10 +70,6 @@ class ConsoleWindow : public Window {
 
 		std::unique_ptr<std::pair<float, float>> get_input();
 
-<<<<<<< HEAD
-=======
-	
->>>>>>> 5ee9c55 (some changes to alpha beta)
 		void display();
 		void clear();
 };
