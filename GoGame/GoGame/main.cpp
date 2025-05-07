@@ -18,15 +18,9 @@
 using namespace std::chrono;
 std::mutex mtx;
 
-<<<<<<< HEAD
  #ifndef GO_WINDOW
  #include "window.hpp"
  #endif
-=======
-#ifndef GO_WINDOW
-#include "window.hpp"
-#endif
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
 #ifndef GO_BOARD
 #include "board.hpp"
@@ -43,18 +37,10 @@ std::mutex mtx;
 //Comment this out if you want to use the unicode board
 #define PRINT_WINDOW  //If this is defined, then Print_Window will be used
 
-<<<<<<< HEAD
-=======
-static constexpr uint32_t THREADS = 10;
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
 using namespace std;
 
 // Created by Ethan
-<<<<<<< HEAD
-=======
-// Go game class to build initial game off of
->>>>>>> 5ee9c55 (some changes to alpha beta)
 class GoGame {
 private:
     // Initial variables for board and game creation
@@ -69,11 +55,7 @@ private:
 
     //edited by Prashant changed the first player to black
 public:
-<<<<<<< HEAD
     GoGame(int boardSize, const std::string& game_mode) : size(boardSize), gameMode(game_mode), currentPlayer(WHITE), passCount(0) {
-=======
-    GoGame(int boardSize, const std::string& game_mode) : size(boardSize), gameMode(game_mode), currentPlayer(BLACK), passCount(0) {
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
         int screenWidth = 120;
         int screenHeight = 60;
@@ -81,13 +63,8 @@ public:
         int distance_bw_top = 5;
         int distance_bw_side = 20;
 
-<<<<<<< HEAD
         int boardWidth =  ( (screenWidth-distance_bw_side) / (size-1) ) * (size-1) + 1;
         int boardHeight = ( (screenHeight-distance_bw_top) / (size-1) ) * (size-1) + 1;
-=======
-        int boardWidth = ((screenWidth - distance_bw_side) / (size - 1)) * (size - 1) + 1;
-        int boardHeight = ((screenHeight - distance_bw_top) / (size - 1)) * (size - 1) + 1;
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
 #ifndef PRINT_WINDOW
         board_class = std::make_shared<Wchar_Board>(
@@ -411,15 +388,9 @@ public:
         // Run alpha-beta pruning in parallel
         int bestValue = -10000;
         std::shared_ptr<Node> bestMove = nullptr;
-<<<<<<< HEAD
 
         // Function to evaluate a subset of child nodes
         auto evaluateChildren = [&](int start, int end) {
-=======
-        // Function to evaluate a subset of child nodes
-        auto evaluateChildren = [&](int start, int end) {
-
->>>>>>> 5ee9c55 (some changes to alpha beta)
             int localBestValue = -10000;
             std::shared_ptr<Node> localBestMove = nullptr;
 
@@ -438,7 +409,6 @@ public:
                 bestValue = localBestValue;
                 bestMove = localBestMove;
             }
-<<<<<<< HEAD
         };
 
         // Determine the number of threads to use
@@ -451,40 +421,6 @@ public:
         for (unsigned int i = 0; i < numThreads; i++) {
             int start = i * childrenPerThread;
             int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
-=======
-            };
-
-
-        //Bandaid Fix (added by Rhett)
-        std::set<std::shared_ptr<Node>> unique_nodes = {};
-        auto it = root->children.begin();
-        while (it != root->children.end()) {
-            if (unique_nodes.find(*it) != unique_nodes.end()) {
-                it = root->children.erase(it);
-                continue;
-            }
-            unique_nodes.insert(*it);
-            it++;
-        }
-        //----------------------------------------------
-
-        //Added by Prashant
-        // Modified by Rhett
-        // Determine the number of threads to use
-        unsigned int numThreads = root->children.size();
-        int childrenPerThread = root->children.size() / numThreads;
-        if (childrenPerThread <= 0) childrenPerThread = 1;
-        int start = 0;
-        int end = childrenPerThread;
-        std::vector<std::thread> threads;
-
-
-        for (; start < numThreads * childrenPerThread; start += childrenPerThread, end += childrenPerThread) {
-            /*int start = i * childrenPerThread;
-            int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
-            threads.emplace_back(evaluateChildren, start, end);*/
-            if (start == (numThreads * childrenPerThread) - childrenPerThread) end = root->children.size();
->>>>>>> 5ee9c55 (some changes to alpha beta)
             threads.emplace_back(evaluateChildren, start, end);
         }
 
@@ -494,10 +430,6 @@ public:
             thread.join();
         }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5ee9c55 (some changes to alpha beta)
         freeChildren(root->children);  // Free memory
 
         if (bestMove) {
@@ -522,10 +454,6 @@ public:
     }
 
     bool alphaBetaMove2() {
-<<<<<<< HEAD
-=======
-
->>>>>>> 5ee9c55 (some changes to alpha beta)
         std::vector<std::vector<Space_Types>>& board = this->board_class->getStones();
         vector<pair<int, int>> emptySpaces;
 
@@ -563,15 +491,9 @@ public:
         // Run alpha-beta pruning in parallel
         int bestValue = -10000;
         std::shared_ptr<Node> bestMove = nullptr;
-<<<<<<< HEAD
 
         // Function to evaluate a subset of child nodes
         auto evaluateChildren = [&](int start, int end) {
-=======
-        // Function to evaluate a subset of child nodes
-        auto evaluateChildren = [&](int start, int end) {
-
->>>>>>> 5ee9c55 (some changes to alpha beta)
             int localBestValue = -10000;
             std::shared_ptr<Node> localBestMove = nullptr;
 
@@ -592,7 +514,6 @@ public:
                 bestMove = localBestMove;
             }
             };
-<<<<<<< HEAD
 
         // Determine the number of threads to use
         //Added by Prashant
@@ -605,37 +526,6 @@ public:
         for (unsigned int i = 0; i < numThreads; i++) {
             int start = i * childrenPerThread;
             int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
-=======
-        //Bandaid fix (added by Rhett).
-        std::set<std::shared_ptr<Node>> unique_nodes = {};
-        auto it = root->children.begin();
-        while (it != root->children.end()) {
-            if (unique_nodes.find(*it) != unique_nodes.end()) {
-                it = root->children.erase(it);
-                continue;
-            }
-            unique_nodes.insert(*it);
-            it++;
-        }
-        //----------------------------------
-
-        // Determine the number of threads to use
-        //Added by Prashant
-        unsigned int numThreads = root->children.size();
-
-        int childrenPerThread = root->children.size() / numThreads;
-        if (childrenPerThread <= 0) childrenPerThread = 1;
-
-        // Create threads
-        //Added by Prashant
-        //Modified by Rhett
-        int start = 0;
-        int end = childrenPerThread;
-        std::vector<std::thread> threads;
-
-        for (; start < numThreads * childrenPerThread; start += childrenPerThread, end += childrenPerThread) {
-            if (start == (numThreads * childrenPerThread) - childrenPerThread) end = root->children.size();
->>>>>>> 5ee9c55 (some changes to alpha beta)
             threads.emplace_back(evaluateChildren, start, end);
         }
 
@@ -645,10 +535,6 @@ public:
             thread.join();
         }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5ee9c55 (some changes to alpha beta)
         freeChildren(root->children);  // Free memory
 
         if (bestMove) {
@@ -676,30 +562,16 @@ public:
 
     // Gameplay loop
     // Created by Ethan
-<<<<<<< HEAD
-=======
-    // Starts the gamemode for bots
->>>>>>> 5ee9c55 (some changes to alpha beta)
     // Modified by Rhett
     void play() {
 
 
         std::unique_ptr<std::pair<float, float>> input_coords;
         window->clear();
-<<<<<<< HEAD
         while (1) {
             
             window->display();
             if (currentPlayer == BLACK) {
-=======
-
-
-        while (1) {
-
-            window->display();
-
-            if (currentPlayer == WHITE) {
->>>>>>> 5ee9c55 (some changes to alpha beta)
                 cout << "Bot (" << currentPlayer << ") is making a move...\n";
                 if (!alphaBetaMove2()) { // Use parallelized alphaBetaMove2
                     cout << "No valid moves left for the bot. Passing turn.\n";
@@ -714,11 +586,7 @@ public:
                         passCount++;
                     }
                 }
-<<<<<<< HEAD
                else {
-=======
-                else {
->>>>>>> 5ee9c55 (some changes to alpha beta)
                     while (1) {
                         input_coords = window->get_input();
                         if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
@@ -726,52 +594,12 @@ public:
                     }
                 }
             }
-<<<<<<< HEAD
             
-=======
-
->>>>>>> 5ee9c55 (some changes to alpha beta)
             window->clear();
 
             currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
 
             if (passCount >= 2) { //if both players pass the game ends
-<<<<<<< HEAD
-=======
-                window->display();
-                window.reset();
-                cout << "Both players passed. Game over!\n";
-                calculateScores(); //getting the scores
-                return;
-            }
-        }
-    }
-
-
-    //Rhett Thompson
-    /**
-      * Method for player vs player
-      */
-    void play_PVP() {
-
-        std::unique_ptr<std::pair<float, float>> input_coords;
-        window->clear();
-        while (1) {
-            window->display();
-            while (1) {
-                input_coords = window->get_input();
-                if (this->placeStone(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second))) break;
-                std::cout << "Invalid move\n";
-            }
-
-            checkCaptures(static_cast<int>(input_coords->first), static_cast<int>(input_coords->second));
-            window->clear();
-
-            currentPlayer = static_cast<Space_Types>(!static_cast<bool>(currentPlayer));
-
-            if (passCount >= 2) { //if both players pass the game ends
-                window->display();
->>>>>>> 5ee9c55 (some changes to alpha beta)
                 window.reset();
                 cout << "Both players passed. Game over!\n";
                 calculateScores(); //getting the scores
@@ -784,15 +612,6 @@ public:
 };
 
 // Created by Ethan
-<<<<<<< HEAD
-=======
-    /* Initial gameplay loop that includes UI
-       After window opens, user makes the following choices that build the game
-       - Start the game or exit the windows
-       - Choosing board size (5 to 19 included)
-       - Choose gamemode (PvBot, BotvBot, PvP)
-       After all choices made, game loop begins until finish*/
->>>>>>> 5ee9c55 (some changes to alpha beta)
     //Modified by Rhett
 void mainMenu() {
     while (true) {
@@ -802,11 +621,7 @@ void mainMenu() {
         cout << "2. Quit\n";
         cout << "Enter choice: ";
 
-<<<<<<< HEAD
             int choice = 0;
-=======
-        int choice = 0;
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
         while (1) {
             try {
@@ -843,30 +658,15 @@ void mainMenu() {
 
             std::string gameMode;
 
-<<<<<<< HEAD
             cout << "Choose game mode (1 for Player vs Player, 2 for Bot vs Bot): ";
             while (1) {
                 gameMode = Go_Util::get_keyboard_input(1);
                 if (gameMode == "1" || gameMode == "2") break;
                 cout << "Invalid choice! Please enter 1 for Player vs Player or 2 for Player vs Bot: ";
-=======
-            cout << "Choose game mode (1 for Player vs Bot, 2 for Bot vs Bot, 3 for Player vs Player): ";
-            while (1) {
-                gameMode = Go_Util::get_keyboard_input(1);
-                if (gameMode == "1" || gameMode == "2" || gameMode == "3") break;
-                cout << "Invalid choice! Please enter 1 for Player vs Bot, 2 for Bot vs Bot, or 3 for Player vs Player: ";
->>>>>>> 5ee9c55 (some changes to alpha beta)
             }
 
             // Draw board and start gameplay loop
             GoGame game(boardSize, gameMode);
-<<<<<<< HEAD
-=======
-            if (gameMode == "3") {
-                game.play_PVP();
-                continue;
-            }
->>>>>>> 5ee9c55 (some changes to alpha beta)
             game.play();
         }
         else {
@@ -878,10 +678,6 @@ void mainMenu() {
 }
 
 // Created by Ethan
-<<<<<<< HEAD
-=======
-// Starts the main menu UI
->>>>>>> 5ee9c55 (some changes to alpha beta)
 int main() {
     mainMenu();
 
