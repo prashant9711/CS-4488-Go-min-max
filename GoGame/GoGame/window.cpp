@@ -1,4 +1,4 @@
-﻿
+
 #ifndef GO_WINDOW
 #include "window.hpp"
 #endif
@@ -47,15 +47,6 @@
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Initialize a console screen buffer for displaying the board.
-  * @param sHeight: Height of the screen buffer.
-  * @param sWidth: Width of the screen buffer.
-  * @param b: shared pointer to a Board object.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) :
 	Window(sHeight, sWidth), 
 	screen(std::vector<std::vector<wchar_t>>(sHeight, std::vector<wchar_t>(sWidth, L' '))),
@@ -66,50 +57,29 @@ ConsoleWindow::ConsoleWindow(int sHeight, int sWidth, std::shared_ptr<Board> b) 
 
 	console_handle = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(console_handle);
-<<<<<<< HEAD
 
 	//I wish I could get the window to resize here
 	//MoveWindow(window_handle, x, y, width, height, redraw_window);
 	//MoveWindow(hConsole, 100, 100, sWidth, sHeight, TRUE);
 	//SMALL_RECT rect = { 0, 0, sWidth, sHeight };
 	//SetConsoleWindowInfo(hConsole, TRUE, &rect);
-=======
->>>>>>> 5ee9c55 (some changes to alpha beta)
 	
 	draw_row_and_col_labels();
 }
 
 //Rhett Thompson
-<<<<<<< HEAD
 void ConsoleWindow::display() {
 	//Writes the screen characters to the console
 	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
 	board->draw_stone_sprites(board_copy); //Draw the stones over the copy
 	place_board_on_screen(); //Display the copy
 	//draw_turn_info();
-=======
-/**
-  * Display the board on the screen.
-  */
-void ConsoleWindow::display() {
-
-	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
-	board->draw_stone_sprites(board_copy); //Draw the stones over the copy
-	place_board_on_screen(); //Display the copy
-	//draw_turn_info(Space_Types::WHITE);
->>>>>>> 5ee9c55 (some changes to alpha beta)
 	one_dimensionalize();
 	WriteConsoleOutputCharacter(console_handle, oneD_screen.data(), screenWidth * screenHeight, { 0,0 }, &dwBytesWritten);
 }
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Copy the blank board to the board that will be displayed.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 void ConsoleWindow::clear() {
 	board_copy = board->board; //Copy the blank board (I'm doing it this way, for when a stone gets deleted)
 }
@@ -122,15 +92,8 @@ ConsoleWindow::~ConsoleWindow() {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
 void ConsoleWindow::place_board_on_screen() {
 	//Places the board in the screen vector
-=======
-/**
-  * Places the board in the screen vector
-  */
-void ConsoleWindow::place_board_on_screen() {
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
 	for (int i = 0; i < board->boardHeight; i++) {
 		for (int j = 0; j < board->boardWidth; j++) {
@@ -140,28 +103,13 @@ void ConsoleWindow::place_board_on_screen() {
 }
 
 //Rhett Thompson
-<<<<<<< HEAD
 void ConsoleWindow::one_dimensionalize() {
 	//One dimensionalizes a two dimensional array
-=======
-/**
-  * //One dimensionalizes the 2d screen vector
-  */
-void ConsoleWindow::one_dimensionalize() {
-	
->>>>>>> 5ee9c55 (some changes to alpha beta)
 	for (int i = 0; i < screenHeight * screenWidth; i++) {
 		oneD_screen[i] = screen[i / screenWidth][i % screenWidth];
 	}
 }
 
-<<<<<<< HEAD
-=======
-//Rhett Thompson
-/**
-  * Prints a wstring at the specified location in the screen buffer.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 void ConsoleWindow::print_at_loc(int x, int y, const std::wstring& word) {
 	if (x < 0 || y < 0 || x >= screenWidth || y >= screenHeight) return;
 
@@ -173,16 +121,8 @@ void ConsoleWindow::print_at_loc(int x, int y, const std::wstring& word) {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
 void ConsoleWindow::draw_row_and_col_labels() {
 	//Places the column and row labels next to the board
-=======
-/**
-  * Draws the columns and rows of the board.
-  */
-void ConsoleWindow::draw_row_and_col_labels() {
-	
->>>>>>> 5ee9c55 (some changes to alpha beta)
 	int label_loc = (board->x_pos) - 1;
 	int k = 0;
 	for (float i = 0; i < (board->boardHeight) - 1; i += (board->board_height_between_rows), k++) {
@@ -210,30 +150,13 @@ void ConsoleWindow::draw_row_and_col_labels() {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
 void ConsoleWindow::draw_turn_info() {
 	//Working on this to display turn in top left
 	std::wstring active_player = L"White";
-=======
-/**
-  * Not used
-  */
-void ConsoleWindow::draw_turn_info(Space_Types player) {
-	//Working on this to display turn in top left
-	std::wstring wp = (player == Space_Types::WHITE) ? L"White" : L"Black";
-	this->print_at_loc(0, 0, L"Players turn: " + wp);
->>>>>>> 5ee9c55 (some changes to alpha beta)
 }
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Gets the mouse coordinates in the terminal when the user clicks.
-  * @return Pointer to left click mouse event.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 std::unique_ptr<MOUSE_EVENT_RECORD> ConsoleWindow::get_mouse_coord_on_click() {
 	//Gets the mouse coordinates in the console when a left click occurs
 	HANDLE consoleInput = GetStdHandle(STD_INPUT_HANDLE);
@@ -256,13 +179,6 @@ std::unique_ptr<MOUSE_EVENT_RECORD> ConsoleWindow::get_mouse_coord_on_click() {
 }
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Gets the mouse input from the user.
-  * @return Returns the row and column on the board where the user clicked.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 std::unique_ptr<std::pair<float, float>> ConsoleWindow::get_input() {
 	//Places a stone on the board based on the mouse coordinates
 	std::unique_ptr<MOUSE_EVENT_RECORD> mouse_event = get_mouse_coord_on_click();
@@ -277,15 +193,6 @@ std::unique_ptr<std::pair<float, float>> ConsoleWindow::get_input() {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Initializes a print window for the board.
-  * @param sHeight: height of the screen
-  * @param sWidth: width of the screen
-  * @param b: pointer to Board class.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 Print_Window::Print_Window(int sHeight, int sWidth, std::shared_ptr<Board> b) :
 	Window(sHeight, sWidth),
 	screen(std::vector<std::vector<char>>(sHeight, std::vector<char>(sWidth, ' '))),
@@ -298,15 +205,8 @@ Print_Window::Print_Window(int sHeight, int sWidth, std::shared_ptr<Board> b) :
 
 
 //Rhett Thompson
-<<<<<<< HEAD
 void Print_Window::place_board_on_screen() {
 	//Places the board in the screen vector
-=======
-/**
-  * Places the board in the screen vector
-  */
-void Print_Window::place_board_on_screen() {
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
 	for (int i = 0; i < board->boardHeight; i++) {
 		for (int j = 0; j < board->boardWidth; j++) {
@@ -316,12 +216,6 @@ void Print_Window::place_board_on_screen() {
 }
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Draws the rows and columns on the screen.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 void Print_Window::draw_row_and_col_labels() {
 	//Places the column and row labels next to the board
 	int label_loc = (board->x_pos) - 1;
@@ -350,12 +244,6 @@ void Print_Window::draw_row_and_col_labels() {
 }
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Print the window in the terminal.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 void Print_Window::display() {
 	board->draw_stone_sprites(board_copy); //Draw the stones over the copy
 	place_board_on_screen(); //Display the copy
@@ -369,12 +257,6 @@ void Print_Window::display() {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Clear the board 
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 void Print_Window::clear() {
 	board_copy = board->board;
 	//system("cls");
@@ -385,13 +267,6 @@ void Print_Window::clear() {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Gets input from the user as keystrokes
-  * @return Returns the coordinates on the board that the user entered.
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 std::unique_ptr<std::pair<float, float>> Print_Window::get_input() {
 
 	std::cout << "Where would you like to move: ";
