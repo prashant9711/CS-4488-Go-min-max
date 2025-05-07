@@ -6,7 +6,14 @@
 namespace Go_Util {
 
 	//Rhett Thompson
+<<<<<<< HEAD
 	//Pass in a 1 to have it lowercase the input
+=======
+	/**
+	  * Gets keyboard input from the user
+	  * @param lower: boolean for if you want the input lowercased (0 will not, 1 will)
+	  */
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 	std::string get_keyboard_input(bool lower) {
 		std::string str_input;
 		char user_input[MAX_CHAR_LEN];

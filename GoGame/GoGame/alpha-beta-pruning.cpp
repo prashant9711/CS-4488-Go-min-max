@@ -9,10 +9,20 @@
 #include <unordered_set>
 #include <cstdlib>
 #include <future>
+<<<<<<< HEAD
+=======
+#include <string>
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 
 using namespace std;
 using namespace std::chrono;
 
+<<<<<<< HEAD
+=======
+
+
+// Created by Prashant
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 // Getting the neighbors of the current position
 vector<pair<int, int>> getNeighbors(int row, int col) {
     return {
@@ -53,7 +63,13 @@ bool moveCheck(int row, int col, int player, std::shared_ptr<Node> node, set<pai
 // Modified to match data structure by Andrija Sevaljevic
 // Created by Prashant
 int removeStones(int row, int col, int player, std::shared_ptr<Node> node) {
+<<<<<<< HEAD
     node->board[row][col] = 0;
+=======
+
+    node->board[row][col] = 0;
+
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     for (const auto& neighbor : getNeighbors(row, col)) {
         int r = neighbor.first;
         int c = neighbor.second;
@@ -125,6 +141,7 @@ int calculateHeatmapValue(int x, int y, int boardSize) {
     int minDist = std::min(distX, distY);
 
     // Assign values based on distance from the edge
+<<<<<<< HEAD
     if (minDist == 1) {
         return 25; // One line away from edge
     }
@@ -135,6 +152,12 @@ int calculateHeatmapValue(int x, int y, int boardSize) {
         return 30; // Center (semi-good)
     }
 
+=======
+    if (minDist == 1) return 35;       // One line from edge
+    else if (minDist == 2) return 50;  // Optimal area
+    else if (minDist == 3) return 45;  // Still good
+    else if (minDist > 3) return 30;   // Center
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     return 10; // Default (should not happen)
 }
 
@@ -151,20 +174,32 @@ int calculateConnectionBonus(int x, int y, int boardSize, const std::vector<std:
             if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize) {
                 if (board[nx][ny] == currentPlayer) {
                     if (nx || ny == 0) connectionBonus + 15;
+<<<<<<< HEAD
                     connectionBonus += 15;
+=======
+                    connectionBonus += 25;
+>>>>>>> 5ee9c55 (some changes to alpha beta)
                 }// Add bonus for each connected friendly stone
                 else noteye = true;
             }
         }
     }
 
+<<<<<<< HEAD
     if (!noteye) connectionBonus -= 500;
+=======
+    if (!noteye) connectionBonus -= 1000;
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     return connectionBonus;
 }
 
 
 // Added by Andrija Sevaljevic
 // This function calcaultes the strength of a move
+<<<<<<< HEAD
+=======
+// Modified weight values by Prashant 
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int score = 0;
     int currentTurnStone = currentStone;
@@ -175,12 +210,22 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
 
     // Capture score
     int capturedStones = checkCaptures(currentTurnStone * -1, node);
+<<<<<<< HEAD
     score += capturedStones * (100 + (capturedStones * 5));
     node->captureValue = score;
+=======
+    score += capturedStones * (150 + (capturedStones * 10));
+    node->captureValue = score;
+
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     if (score == 0) {
         if (!moveCheck(node->moveX, node->moveY, currentStone, node, visited)) score -= 10000;
         capturedStones = checkCaptures(currentTurnStone, node);
         score -= capturedStones * (100 + (capturedStones * 5));
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5ee9c55 (some changes to alpha beta)
         node->captureValue -= score;
     }
 
@@ -195,14 +240,25 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     int bottomRightInfluence = 0;
     int connectionBonus = calculateConnectionBonus(node->moveX, node->moveY, node->boardSize, node->board, currentStone);
 
+<<<<<<< HEAD
+=======
+
+    int half_size = node->boardSize / 2;
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     for (int x = 0; x < node->boardSize; x++) {
         for (int y = 0; y < node->boardSize; y++) {
             if (node->board[x][y] == currentTurnStone) {
                 goodStones++;
 
+<<<<<<< HEAD
                 if (x <= node->boardSize / 2 && y <= node->boardSize / 2) topLeftInfluence++;
                 else if (x >= node->boardSize / 2 && y >= node->boardSize / 2) bottomRightInfluence++;
                 else if (x >= node->boardSize / 2 && y <= node->boardSize / 2) topRightInfluence++;
+=======
+                if (x <= half_size && y <= half_size) topLeftInfluence++;
+                else if (x >= half_size && y >= half_size) bottomRightInfluence++;
+                else if (x >= half_size && y <= half_size) topRightInfluence++;
+>>>>>>> 5ee9c55 (some changes to alpha beta)
                 else bottomLeftInfluence++;
 
                 if (!visited.count({ x, y })) {
@@ -227,23 +283,38 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
 
     if (goodStones + badStones < node->boardSize * node->boardSize / 4) {
         // Early game: prioritize liberties
+<<<<<<< HEAD
         liberties *= 20; // Increased weight on liberties
         groupStrength *= 5; // Lower weight on group strength
+=======
+        liberties *= 30; // Increased weight on liberties
+        groupStrength *= 10; // Lower weight on group strength
+>>>>>>> 5ee9c55 (some changes to alpha beta)
         if(std::rand() % 100 < 0.3) score += connectionBonus * 0.5;
         if((goodStones + badStones) < 13 && (goodStones + badStones) < node->boardSize) score += calculateHeatmapValue(node->moveX, node->moveY, node->boardSize);
     }
     else if (goodStones + badStones < node->boardSize * node->boardSize * 2 / 3) {
         // Mid game: balance between liberties and group strength
+<<<<<<< HEAD
         liberties *= 8;
         groupStrength *= 10;
+=======
+        liberties *= 15;
+        groupStrength *= 15;
+>>>>>>> 5ee9c55 (some changes to alpha beta)
         if (std::rand() % 100 < 0.75) score += connectionBonus;
         if (connectionBonus == 0) score -= 10;
         score += calculateHeatmapValue(node->moveX, node->moveY, node->boardSize) * 0.35;
     }
     else {
         // Late game: prioritize group strength
+<<<<<<< HEAD
         liberties *= 5;
         groupStrength *= 20; // Increased weight on group strength
+=======
+        liberties *= 10;
+        groupStrength *= 25; // Increased weight on group strength
+>>>>>>> 5ee9c55 (some changes to alpha beta)
         if (std::rand() % 100 < 0.9) score += connectionBonus;
         if (connectionBonus == 0) score -= 25;
         score += calculateHeatmapValue(node->moveX, node->moveY, node->boardSize) * 0.2;
@@ -272,15 +343,25 @@ int evaluateBoard(int currentStone, std::shared_ptr<Node> node) {
     score += topLeftInfluence + topRightInfluence + bottomLeftInfluence + bottomRightInfluence;
 
     score = score * currentStone;
+<<<<<<< HEAD
     node->value = score;
 
 
 
+=======
+
+    node->value = score;
+
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     return score;
 }
 
 // Added by Andrija Sevaljevic
 // This function cycles through all of our possible moves
+<<<<<<< HEAD
+=======
+// Modified weight values by Prashant 
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 int alphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool maximizingPlayer, steady_clock::time_point startTime) {
 
     auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
@@ -305,14 +386,22 @@ int alphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool m
 
     if (maximizingPlayer && depth != 0) {
         int maxEval = std::numeric_limits<int>::min();
+<<<<<<< HEAD
         for (std::shared_ptr<Node> child : node->children) {
+=======
+        for (int i = 0; i < node->children.size(); i++) {
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 
             auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
             if (elapsed >= 10) {
                 return node->value;
             }
 
+<<<<<<< HEAD
             int eval = alphaBeta(child, dynamicDepth, alpha, beta, false, startTime);
+=======
+            int eval = alphaBeta(node->children[i], dynamicDepth, alpha, beta, false, startTime);
+>>>>>>> 5ee9c55 (some changes to alpha beta)
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
             if (beta <= alpha) break; // Beta cut-off
@@ -321,14 +410,22 @@ int alphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool m
     }
     else {
         int minEval = std::numeric_limits<int>::max();
+<<<<<<< HEAD
         for (std::shared_ptr<Node> child : node->children) {
+=======
+        for (int i = 0; i < node->children.size(); i++) {
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 
             auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
             if (elapsed >= 10) {
                 return node->value;
             }
 
+<<<<<<< HEAD
             int eval = alphaBeta(child, dynamicDepth, alpha, beta, true, startTime);
+=======
+            int eval = alphaBeta(node->children[i], dynamicDepth, alpha, beta, true, startTime);
+>>>>>>> 5ee9c55 (some changes to alpha beta)
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
             if (beta <= alpha) break; // Alpha cut-off
@@ -339,7 +436,11 @@ int alphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool m
 
 // Parallel version of alpha-beta pruning
 // Created by Andrija Sevaljevic
+<<<<<<< HEAD
 // Edited by Prashant Pant
+=======
+// Edited by Prashant Pant for parallel threading
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 int parallelAlphaBeta(std::shared_ptr<Node> node, int depth, int alpha, int beta, bool maximizingPlayer, steady_clock::time_point startTime) {
     auto elapsed = duration_cast<seconds>(steady_clock::now() - startTime).count();
     if (elapsed >= 10) {
@@ -419,6 +520,10 @@ void generateChildren(std::shared_ptr<Node> node, bool isMaximizing) {
             if (node->board[x][y] == 0) { // Empty spot
                 std::vector<std::vector<int>> newBoard = node->board;
                 newBoard[x][y] = playerValue;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5ee9c55 (some changes to alpha beta)
                 node->children.push_back(std::make_shared<Node>(newBoard, node->boardSize, x, y, 0, node));
             }
         }
@@ -428,6 +533,10 @@ void generateChildren(std::shared_ptr<Node> node, bool isMaximizing) {
 // Added by Andrija Sevaljevic
 // This function generates a tree of N best possible moves
 void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     int playerValue = isMaximizing ? 1 : -1;  // Assign '1' to Player 1, '-1' to Player 2
     vector<pair<int, std::shared_ptr<Node>>> evaluatedChildren; // Pair of evaluation score and Node pointer
 
@@ -467,7 +576,13 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
     int topCount = min(5, moveCount);          // Top 5 moves
     int midCount = min(5, max(0, moveCount - 5)); // Middle 5 moves
 
+<<<<<<< HEAD
     // Add top 5 moves
+=======
+
+    // Add top 5 moves
+
+>>>>>>> 5ee9c55 (some changes to alpha beta)
     for (int i = 0; i < topCount; i++) {
         node->children.push_back(evaluatedChildren[i].second);
     }
@@ -479,10 +594,13 @@ void generateNChildren(std::shared_ptr<Node> node, bool isMaximizing) {
             node->children.push_back(evaluatedChildren[i].second);
         }
     }
+<<<<<<< HEAD
 
     for(auto& element: evaluatedChildren){
         freeChildren(element.second->children);
     }
+=======
+>>>>>>> 5ee9c55 (some changes to alpha beta)
 }
 
 
