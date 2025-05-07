@@ -37,7 +37,6 @@ std::mutex mtx;
 //Comment this out if you want to use the unicode board
 #define PRINT_WINDOW  //If this is defined, then Print_Window will be used
 
-static constexpr uint32_t THREADS = 10;
 
 using namespace std;
 
@@ -90,22 +89,6 @@ public:
     }
 
 
-    // Temp display for board
-    /*void displayBoard() {
-        cout << "   ";
-        for (int col = 0; col < size; col++) {
-            cout << col << " "; // Build columns of board
-        }
-        cout << endl;
-
-        for (int row = 0; row < size; row++) {
-            cout << char('A' + row) << "  "; // Build rows of board
-            for (int col = 0; col < size; col++) {
-                cout << board[row][col] << " ";
-            }
-            cout << endl;
-        }
-    }*/
     // Created by Prashant
     // Checking if the position is on the board
     bool onBoard(int row, int col) {
@@ -190,31 +173,9 @@ public:
 
     // Created by Ethan
     // Modified by Rhett
+    // Modified by Prashant
     bool placeStone(int row, int col) { //Using 0 based indexing here
 
-
-        // Added by Prashant
-        // Checking for pass
-        /*if (move == "pass") {
-            passCount++;
-            currentPlayer = (currentPlayer == 'W') ? 'B' : 'W';
-            return true;
-        }*/
-        //passCount = 0; // Passcount = 0 if the player makes a move
-
-        //if (move.length() < 2) return false; // Invalid input check
-
-        //char rowChar = toupper(move[0]); // Convert row letter to uppercase
-        //int row = rowChar - 'A';
-
-        // Convert the column number safely
-        //int col;
-        //stringstream ss(move.substr(1));
-        //if (!(ss >> col)) return false;  // Ensure conversion is valid
-
-        //if (row < 0 || row >= size || col < 0 || col >= size || board[row][col] != '.') {
-            //return false; // Catch input off board
-        //}
         if (row == -100 && col == -100) { //I'm using these values to represent a pass
             passCount++;
             std::cout << "Player: " << currentPlayer << " passed\n";
@@ -223,8 +184,6 @@ public:
         passCount = 0;
         bool result = this->board_class->place_stone_on_board(row, col, currentPlayer);
         if (!result) return result;
-
-        //board[row][col] = currentPlayer; // Set current player stone location
 
         // Added by Prashant
         checkCaptures(row, col); // Check for captures
@@ -335,7 +294,6 @@ public:
         int col = emptySpaces[randomIndex].second;
 
         // Place the bot's stone
-        //board[row][col] = currentPlayer;
         bool result = this->board_class->place_stone_on_board(row, col, currentPlayer);
 
         // Checking for captures
@@ -438,9 +396,6 @@ public:
 
 
         for (; start < numThreads * childrenPerThread; start += childrenPerThread, end += childrenPerThread) {
-            /*int start = i * childrenPerThread;
-            int end = (i == numThreads - 1) ? root->children.size() : start + childrenPerThread;
-            threads.emplace_back(evaluateChildren, start, end);*/
             if (start == (numThreads * childrenPerThread) - childrenPerThread) end = root->children.size();
             threads.emplace_back(evaluateChildren, start, end);
         }
