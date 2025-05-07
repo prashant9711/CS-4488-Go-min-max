@@ -6,17 +6,6 @@
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Initialize a board that uses wchars to represent rows, columns, and stones (meant to be used with ConsoleWindow)
-  * @param bWidth: width of the board (in characters)
-  * @param bHeight: height of the board (in characters)
-  * @param stone_amount: the amount of stones for the width and height
-  * @param x: x position on the screen 
-  * @param y: y position on the screen
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 Wchar_Board::Wchar_Board(int bWidth, int bHeight, int stone_amount, int x, int y):
 	Board(bWidth, bHeight, stone_amount, x, y),
 	board(std::vector<std::vector<wchar_t>>(bHeight, std::vector<wchar_t>(bWidth, L' ')))  //Whitespace on initialization
@@ -28,15 +17,8 @@ Wchar_Board::Wchar_Board(int bWidth, int bHeight, int stone_amount, int x, int y
 
 
 //Rhett Thompson
-<<<<<<< HEAD
 void Wchar_Board::init_board() {
 	//Fill the board with the appropriate characters
-=======
-/**
-  * Creates the appearance of the board 
-  */
-void Wchar_Board::init_board() {
->>>>>>> 5ee9c55 (some changes to alpha beta)
 
 	for (float i = 0; i < boardHeight; i += board_height_between_rows) { //Horizontal bars inside of board
 		for (int j = 0; j < boardWidth; j++) {
@@ -74,13 +56,6 @@ void Wchar_Board::init_board() {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Builds a character sprite for a stone
-  * @param ch: unicode character that will be used for the sprite
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 std::vector<std::vector<wchar_t>> Wchar_Board::build_piece(wchar_t ch) {
 	//Builds a character sprite for a stone from the specified character
 	int height = calc_piece_space(board_height_between_rows);
@@ -99,17 +74,8 @@ std::vector<std::vector<wchar_t>> Wchar_Board::build_piece(wchar_t ch) {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
 int Wchar_Board::calc_piece_space(float space) { //Keep an eye on this one same reasons as the one below
 	//Calculates the width or height of a character sprite based on the size of the board.
-=======
-/**
-  * Calculates the width or height of a character sprite based on the size of the board.
-  * @param space: width or height of sprite
-  * @returns half the height or width adjusted for even or odd spacing
-  */
-int Wchar_Board::calc_piece_space(float space) { //Keep an eye on this one same reasons as the one below
->>>>>>> 5ee9c55 (some changes to alpha beta)
 	int half_space = static_cast<int>(space+1) >> 1;
 	return half_space + !(half_space & 0x1); //Add 1 if its even
 }
@@ -117,16 +83,6 @@ int Wchar_Board::calc_piece_space(float space) { //Keep an eye on this one same 
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Place a stone on the board
-  * @param row: row to place stone
-  * @param col: col to place stone
-  * @param player: the player that you would like to place the stone for
-  * @returns true or false if the placement succeeds
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 bool Wchar_Board::place_stone_on_board(int row, int col, Space_Types player){ //This uses 0 based indexing
 	//Places a stone
 	if (row >= stoneField_size || col >= stoneField_size || row < 0 || col < 0) return false;
@@ -137,17 +93,8 @@ bool Wchar_Board::place_stone_on_board(int row, int col, Space_Types player){ //
 }
 
 //Rhett Thompson
-<<<<<<< HEAD
 void Wchar_Board::draw_stone_sprites(std::vector<std::vector<wchar_t>>& board_copy) const{
 	//Iterate through the stones and draw their sprites
-=======
-/**
-  * Iterate through the stones and draw their sprites on the board
-  * @param board_copy: board that you would like to place the sprite on
-  */
-void Wchar_Board::draw_stone_sprites(std::vector<std::vector<wchar_t>>& board_copy) const{
-	//
->>>>>>> 5ee9c55 (some changes to alpha beta)
 	const std::vector<std::vector<wchar_t>>* stone_sprite;
 	int sprite_height;
 	int sprite_width;
@@ -164,10 +111,6 @@ void Wchar_Board::draw_stone_sprites(std::vector<std::vector<wchar_t>>& board_co
 				for (int j = 0; j < sprite_width; j++) {
 					row_calc = static_cast<int>(static_cast<float>(s) * board_height_between_rows) - (sprite_height >> 1) + i;
 					col_calc = static_cast<int>(static_cast<float>(t) * board_width_between_cols) - (sprite_width >> 1) + j;
-<<<<<<< HEAD
-=======
-					//In hindsight, this is not good code.  I should have just used two conditions.  These calculations just check if the peice is on the board
->>>>>>> 5ee9c55 (some changes to alpha beta)
 					r = row_calc + ((sprite_height >> 1) * (row_calc < 0)) - 2 * ((sprite_height >> 1) * (row_calc > boardHeight - 1)) - ((sprite_height >> 1) == 0 && (row_calc > boardHeight - 1));
 					c = col_calc + ((sprite_width >> 1) * (col_calc < 0)) - 2 * ((sprite_width >> 1) * (col_calc > boardWidth - 1)) - ((sprite_width >> 1) == 0 && (col_calc > boardWidth - 1));
 					board_copy[r][c] = (*stone_sprite)[i][j];
@@ -180,20 +123,8 @@ void Wchar_Board::draw_stone_sprites(std::vector<std::vector<wchar_t>>& board_co
 
 
 
-<<<<<<< HEAD
 
 
-=======
-//Rhett Thompson
-/**
-  * Initialize a board that uses chars to represent rows, columns, and stones (meant to be used with PrintWindow)
-  * @param bWidth: width of the board (in characters)
-  * @param bHeight: height of the board (in characters)
-  * @param stone_amount: the amount of stones for the width and height
-  * @param x: x position on the screen
-  * @param y: y position on the screen
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 Char_Board::Char_Board(int bWidth, int bHeight, int stone_amount, int x, int y) :
 	Board(bWidth, bHeight, stone_amount, x, y),
 	board(std::vector<std::vector<char>>(bHeight, std::vector<char>(bWidth, ' ')))  //Whitespace on initialization
@@ -205,12 +136,6 @@ Char_Board::Char_Board(int bWidth, int bHeight, int stone_amount, int x, int y) 
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Creates the appearance of the board
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 void Char_Board::init_board() {
 	//Fill the board with the appropriate characters
 
@@ -241,13 +166,6 @@ void Char_Board::init_board() {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Builds a character sprite for a stone
-  * @param ch: character that will be used for the sprite
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 std::vector<std::vector<char>> Char_Board::build_piece(char ch) {
 	//Builds a character sprite for a stone from the specified character
 	int height = calc_piece_space(board_height_between_rows);
@@ -266,16 +184,7 @@ std::vector<std::vector<char>> Char_Board::build_piece(char ch) {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
 int Char_Board::calc_piece_space(float space) { //I changed this, and it might cause some problems.  We will see
-=======
-/**
-  * Calculates the width or height of a character sprite based on the size of the board.
-  * @param space: width or height of sprite
-  * @returns half the height or width adjusted for even or odd spacing
-  */
-int Char_Board::calc_piece_space(float space) {
->>>>>>> 5ee9c55 (some changes to alpha beta)
 	//Calculates the width or height of a character sprite based on the size of the board.
 	//std::cout << "Space: " << space << "\n";
 	int half_space = static_cast<int>(space+1) >> 1; //space does not include next column or row character.
@@ -285,16 +194,6 @@ int Char_Board::calc_piece_space(float space) {
 
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Place a stone on the board
-  * @param row: row to place stone
-  * @param col: col to place stone
-  * @param player: the player that you would like to place the stone for
-  * @returns true or false if the placement succeeds
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 bool Char_Board::place_stone_on_board(int row, int col, Space_Types player) { //This uses 0 based indexing
 	//Places a stone
 	if (row >= stoneField_size || col >= stoneField_size || row < 0 || col < 0) return false;
@@ -305,13 +204,6 @@ bool Char_Board::place_stone_on_board(int row, int col, Space_Types player) { //
 }
 
 //Rhett Thompson
-<<<<<<< HEAD
-=======
-/**
-  * Iterate through the stones and draw their sprites on the board
-  * @param board_copy: board that you would like to place the sprite on
-  */
->>>>>>> 5ee9c55 (some changes to alpha beta)
 void Char_Board::draw_stone_sprites(std::vector<std::vector<char>>& board_copy) const {
 	//Iterate through the stones and draw their sprites
 	const std::vector<std::vector<char>>* stone_sprite;
@@ -330,10 +222,6 @@ void Char_Board::draw_stone_sprites(std::vector<std::vector<char>>& board_copy) 
 				for (int j = 0; j < sprite_width; j++) {
 					row_calc = static_cast<int>(static_cast<float>(s) * board_height_between_rows) - (sprite_height >> 1) + i;
 					col_calc = static_cast<int>(static_cast<float>(t) * board_width_between_cols) - (sprite_width >> 1) + j;
-<<<<<<< HEAD
-=======
-					//In hindsight, this is not good code.  I should have just used two conditions.  These calculations just check if the peice is on the board
->>>>>>> 5ee9c55 (some changes to alpha beta)
 					r = row_calc + ((sprite_height >> 1) * (row_calc < 0)) - 2 * ((sprite_height >> 1) * (row_calc > boardHeight - 1)) - ((sprite_height >> 1) == 0 && (row_calc > boardHeight - 1));
 					c = col_calc + ((sprite_width >> 1) * (col_calc < 0)) - 2 * ((sprite_width >> 1) * (col_calc > boardWidth - 1)) - ((sprite_width >> 1) == 0 && (col_calc > boardWidth - 1));
 					board_copy[r][c] = (*stone_sprite)[i][j];
